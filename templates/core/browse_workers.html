@@ -1,0 +1,228 @@
+{% extends 'layouts/main.html' %}
+
+{% block main %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Find Workers</h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Connect with skilled professionals for your projects</p>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
+            <div class="p-6">
+                <form method="get" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label for="{{ form.query.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Search Workers
+                            </label>
+                            {{ form.query }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.skill.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Skill
+                            </label>
+                            {{ form.skill }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.experience_level.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Experience Level
+                            </label>
+                            {{ form.experience_level }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.max_rate.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Max Hourly Rate
+                            </label>
+                            {{ form.max_rate }}
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="flex space-x-3">
+                            <button type="submit" 
+                                    class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Search Workers
+                            </button>
+                            <a href="{% url 'core:browse_workers' %}" 
+                               class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                Clear Filters
+                            </a>
+                        </div>
+                        
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ workers.paginator.count }} workers found
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Workers List -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% if workers %}
+                {% for worker in workers %}
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg hover:shadow-lg transition-shadow duration-200">
+                        <div class="p-6">
+                            <!-- Worker Header -->
+                            <div class="flex items-center space-x-4 mb-4">
+                                {% if worker.user.profile_picture %}
+                                    <img src="{{ worker.user.profile_picture.url }}" alt="{{ worker.user.get_full_name }}" 
+                                         class="w-16 h-16 rounded-full object-cover">
+                                {% else %}
+                                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-semibold">
+                                        {{ worker.user.first_name|first|upper }}{{ worker.user.last_name|first|upper }}
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                        {{ worker.user.get_full_name }}
+                                    </h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ worker.get_experience_level_display }}
+                                    </p>
+                                    <div class="flex items-center mt-1">
+                                        <div class="flex items-center">
+                                            {% for i in "12345" %}
+                                                <svg class="w-4 h-4 {% if forloop.counter <= worker.rating %}text-yellow-400{% else %}text-gray-300{% endif %}" 
+                                                     fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                            {% endfor %}
+                                            <span class="ml-1 text-sm text-gray-600 dark:text-gray-400">
+                                                {{ worker.rating|floatformat:1 }} ({{ worker.num_ratings }})
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <div class="text-lg font-semibold text-gray-900 dark:text-white">
+                                        ${{ worker.hourly_rate|default:"0" }}/hr
+                                    </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ worker.total_jobs_completed }} jobs
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Bio -->
+                            {% if worker.bio %}
+                                <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                                    {{ worker.bio|truncatewords:20 }}
+                                </p>
+                            {% endif %}
+                            
+                            <!-- Skills -->
+                            {% if worker.skills.all %}
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Skills:</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for skill in worker.skills.all|slice:":5" %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                {{ skill.name }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if worker.skills.count > 5 %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                                +{{ worker.skills.count|add:"-5" }} more
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Status and Actions -->
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                                        {% if worker.is_available %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {% if worker.is_available %}Available{% else %}Unavailable{% endif %}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'core:worker_public_profile' worker.id %}" 
+                                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">
+                                        View Profile
+                                    </a>
+                                    {% if worker.is_available %}
+                                        <a href="#" 
+                                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                                            Contact
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if workers.has_other_pages %}
+                    <div class="col-span-full flex justify-center mt-8">
+                        <nav class="flex items-center space-x-2">
+                            {% if workers.has_previous %}
+                                <a href="?page={{ workers.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Previous
+                                </a>
+                            {% endif %}
+                            
+                            {% for num in workers.paginator.page_range %}
+                                {% if workers.number == num %}
+                                    <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
+                                        {{ num }}
+                                    </span>
+                                {% elif num > workers.number|add:'-3' and num < workers.number|add:'3' %}
+                                    <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                       class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        {{ num }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if workers.has_next %}
+                                <a href="?page={{ workers.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Next
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="col-span-full text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No workers found</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Try adjusting your search criteria or check back later for new workers.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Dark mode support for form fields */
+    .dark input, .dark select {
+        background-color: rgb(55 65 81);
+        border-color: rgb(75 85 99);
+        color: white;
+    }
+    
+    .dark input:focus, .dark select:focus {
+        border-color: rgb(59 130 246);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+</style>
+{% endblock %}

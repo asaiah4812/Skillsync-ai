@@ -1,0 +1,162 @@
+{% extends 'layouts/main.html' %}
+
+{% block main %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">My Applications</h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Track your job applications and their status</p>
+        </div>
+
+        <!-- Filter -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+            <div class="px-6 py-4">
+                <div class="flex flex-wrap gap-4">
+                    <a href="{% url 'core:worker_applications' %}" 
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if not status_filter %}bg-blue-100 text-blue-700{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        All ({{ total_applications }})
+                    </a>
+                    <a href="{% url 'core:worker_applications' %}?status=PENDING" 
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if status_filter == 'PENDING' %}bg-yellow-100 text-yellow-700{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        Pending
+                    </a>
+                    <a href="{% url 'core:worker_applications' %}?status=ACCEPTED" 
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if status_filter == 'ACCEPTED' %}bg-green-100 text-green-700{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        Accepted
+                    </a>
+                    <a href="{% url 'core:worker_applications' %}?status=REJECTED" 
+                       class="px-3 py-2 rounded-md text-sm font-medium {% if status_filter == 'REJECTED' %}bg-red-100 text-red-700{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                        Rejected
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications List -->
+        <div class="space-y-6">
+            {% if applications %}
+                {% for application in applications %}
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                        <div class="px-6 py-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ application.job.title }}</h3>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {% if application.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                            {% elif application.status == 'ACCEPTED' %}bg-green-100 text-green-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-3">{{ application.job.description|truncatewords:30 }}</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Job Budget</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">${{ application.job.budget_min|default:"0" }} - ${{ application.job.budget_max|default:"0" }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Location</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">{{ application.job.location }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Applied</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">{{ application.applied_at|date:"M d, Y" }}</p>
+                                        </div>
+                                        {% if application.proposed_rate %}
+                                            <div>
+                                                <p class="text-gray-500 dark:text-gray-400">Your Rate</p>
+                                                <p class="font-medium text-gray-900 dark:text-white">${{ application.proposed_rate }}/hour</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    {% if application.cover_letter %}
+                                        <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Your Cover Letter:</p>
+                                            <p class="text-sm text-gray-900 dark:text-white">{{ application.cover_letter|truncatewords:20 }}</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex flex-col space-y-2 ml-4">
+                                    <a href="{% url 'core:job_detail' application.job.id %}" 
+                                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">
+                                        View Job
+                                    </a>
+                                    {% if application.status == 'ACCEPTED' %}
+                                        <span class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100">
+                                            ✓ Accepted
+                                        </span>
+                                    {% elif application.status == 'REJECTED' %}
+                                        <span class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100">
+                                            ✗ Rejected
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100">
+                                            ⏳ Pending
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if applications.has_other_pages %}
+                    <div class="flex justify-center mt-8">
+                        <nav class="flex items-center space-x-2">
+                            {% if applications.has_previous %}
+                                <a href="?page={{ applications.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Previous
+                                </a>
+                            {% endif %}
+                            
+                            {% for num in applications.paginator.page_range %}
+                                {% if applications.number == num %}
+                                    <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
+                                        {{ num }}
+                                    </span>
+                                {% elif num > applications.number|add:'-3' and num < applications.number|add:'3' %}
+                                    <a href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                                       class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        {{ num }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if applications.has_next %}
+                                <a href="?page={{ applications.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Next
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No applications found</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {% if status_filter %}
+                            No applications with status "{{ status_filter }}" found.
+                        {% else %}
+                            You haven't applied for any jobs yet.
+                        {% endif %}
+                    </p>
+                    <div class="mt-6">
+                        <a href="{% url 'core:home' %}" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                            Browse Available Jobs
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
