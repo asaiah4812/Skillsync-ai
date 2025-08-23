@@ -41,7 +41,7 @@ SkillsSync AI is a modern, feature-rich freelance job platform that connects ski
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/skillsync-ai.git
+   git clone https://github.com/asaiah4812/Skillsync-ai.git
    cd skillsync-ai
    ```
 
@@ -259,9 +259,9 @@ coverage report
 
 ## 📞 Support
 
-- **Documentation**: [Wiki](https://github.com/yourusername/skillsync-ai/wiki)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/skillsync-ai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/skillsync-ai/discussions)
+- **Documentation**: [Wiki](https://github.com/asaiah4812/Skillsync-ai/wiki)
+- **Issues**: [GitHub Issues](https://github.com/asaiah4812/skillsync-ai/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/asaiah4812/skillsync-ai/discussions)
 
 ## 📄 License
 
@@ -279,6 +279,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the SkillsSync AI Team**
+**Made with ❤️ by dreamerwebdev Team**
+https://hensonport.vercel.app
 
 If you find this project helpful, please consider giving it a ⭐ star on GitHub!

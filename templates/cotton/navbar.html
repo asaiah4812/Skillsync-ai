@@ -7,9 +7,18 @@
                     <h1 class="text-2xl font-bold text-primary">SkillSync</h1>
                 </div>
                 <div class="hidden md:ml-6 md:flex md:space-x-8">
-                    <a href="#" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Find Workers</a>
-                    <a href="#" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Post a Job</a>
-                    <a href="#" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">How it Works</a>
+                    <a href="{% url 'core:browse_workers' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Find Workers</a>
+                    <a href="{% url 'core:browse_jobs' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Browse Jobs</a>
+                    {% if user.is_authenticated %}
+                        {% if user.user_type == 'CLIENT' %}
+                            <a href="{% url 'core:post_job' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Post a Job</a>
+                            <a href="{% url 'core:client_recommendations' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Find Workers</a>
+                        {% elif user.user_type == 'WORKER' %}
+                            <a href="{% url 'core:worker_recommendations' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Recommended Jobs</a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'core:post_job' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Post a Job</a>
+                    {% endif %}
                 </div>
             </div>
             
@@ -55,8 +64,35 @@
                 </div>
                 
                 <div class="hidden md:flex items-center space-x-4">
-                    <a href="{% url 'account:login' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Login</a>
-                    <a href="{% url 'account:register' %}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">Sign Up</a>
+                    {% if user.is_authenticated %}
+                        <div class="relative" x-data="{ userMenuOpen: false }">
+                            <button @click="userMenuOpen = !userMenuOpen" class="flex items-center space-x-2 text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span>{{ user.get_full_name|default:user.username }}</span>
+                            </button>
+                            
+                            <div x-show="userMenuOpen" @click.away="userMenuOpen = false" x-transition class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                                <div class="py-1">
+                                    {% if user.user_type == 'CLIENT' %}
+                                        <a href="{% url 'core:client_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Dashboard</a>
+                                        <a href="{% url 'core:client_recommendations' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Find Workers</a>
+                                        <a href="{% url 'core:post_job' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Post Job</a>
+                                    {% elif user.user_type == 'WORKER' %}
+                                        <a href="{% url 'core:worker_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Dashboard</a>
+                                        <a href="{% url 'core:worker_recommendations' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Recommended Jobs</a>
+                                    {% endif %}
+                                    <a href="{% url 'account:profile' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</a>
+                                    <hr class="my-1 border-gray-200 dark:border-gray-600">
+                                    <a href="{% url 'account:logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Logout</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'account:login' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Login</a>
+                        <a href="{% url 'account:register' %}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">Sign Up</a>
+                    {% endif %}
                 </div>
                 
                 <!-- Mobile menu button -->
@@ -72,11 +108,24 @@
     <!-- Mobile menu -->
     <div x-show="mobileMenuOpen" x-transition class="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="#" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Find Workers</a>
-            <a href="#" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Post a Job</a>
-            <a href="#" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">How it Works</a>
-            <a href="{% url 'account:login' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Login</a>
-            <a href="{% url 'account:register' %}" class="block px-3 py-2 bg-primary text-white rounded-lg">Sign Up</a>
+            <a href="{% url 'core:browse_workers' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Find Workers</a>
+            <a href="{% url 'core:browse_jobs' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Browse Jobs</a>
+            {% if user.is_authenticated %}
+                {% if user.user_type == 'CLIENT' %}
+                    <a href="{% url 'core:post_job' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Post a Job</a>
+                    <a href="{% url 'core:client_recommendations' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Find Workers</a>
+                    <a href="{% url 'core:client_dashboard' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Dashboard</a>
+                {% elif user.user_type == 'WORKER' %}
+                    <a href="{% url 'core:worker_recommendations' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Recommended Jobs</a>
+                    <a href="{% url 'core:worker_dashboard' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Dashboard</a>
+                {% endif %}
+                <a href="{% url 'account:profile' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Profile</a>
+                <a href="{% url 'account:logout' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Logout</a>
+            {% else %}
+                <a href="{% url 'core:post_job' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Post a Job</a>
+                <a href="{% url 'account:login' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Login</a>
+                <a href="{% url 'account:register' %}" class="block px-3 py-2 bg-primary text-white rounded-lg">Sign Up</a>
+            {% endif %}
         </div>
     </div>
 </nav>

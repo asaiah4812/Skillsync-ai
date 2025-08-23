@@ -1,0 +1,230 @@
+{% extends 'layouts/main.html' %}
+
+{% block main %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Recommended Jobs</h1>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">Jobs that match your skills and preferences</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'core:browse_jobs' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Browse All Jobs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="skill" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skill</label>
+                    <select name="skill" id="skill" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">All Skills</option>
+                        {% for skill in all_skills %}
+                        <option value="{{ skill.name }}" {% if skill_filter == skill.name %}selected{% endif %}>{{ skill.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority Level</label>
+                    <select name="priority" id="priority" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">All Priorities</option>
+                        {% for level, label in priority_levels %}
+                        <option value="{{ level }}" {% if priority_filter == level %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="budget" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Budget</label>
+                    <select name="budget" id="budget" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">Any Budget</option>
+                        <option value="100" {% if budget_filter == "100" %}selected{% endif %}>$100 or less</option>
+                        <option value="250" {% if budget_filter == "250" %}selected{% endif %}>$250 or less</option>
+                        <option value="500" {% if budget_filter == "500" %}selected{% endif %}>$500 or less</option>
+                        <option value="1000" {% if budget_filter == "1000" %}selected{% endif %}>$1000 or less</option>
+                        <option value="2000" {% if budget_filter == "2000" %}selected{% endif %}>$2000 or less</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-end">
+                    <button type="submit" class="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Jobs Grid -->
+        {% if recommended_jobs %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for job in recommended_jobs %}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                <!-- Job Header -->
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+                                {{ job.title }}
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                Posted by {{ job.client.get_full_name|default:job.client.username }}
+                            </p>
+                        </div>
+                        <div class="ml-4">
+                            {% if job.priority == 'URGENT' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                Urgent
+                            </span>
+                            {% elif job.priority == 'HIGH' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                High
+                            </span>
+                            {% elif job.priority == 'MEDIUM' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                Medium
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                Low
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Description Preview -->
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                        {{ job.description|truncatewords:20 }}
+                    </p>
+                    
+                    <!-- Required Skills -->
+                    {% if job.required_skills.all %}
+                    <div class="mb-4">
+                        <div class="flex flex-wrap gap-2">
+                            {% for skill in job.required_skills.all|slice:":3" %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                {{ skill.name }}
+                            </span>
+                            {% endfor %}
+                            {% if job.required_skills.count > 3 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                +{{ job.required_skills.count|add:"-3" }} more
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Job Details -->
+                    <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                        {% if job.budget_min or job.budget_max %}
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Budget:</span>
+                            <span class="font-medium text-gray-900 dark:text-white ml-2">
+                                {% if job.budget_min and job.budget_max %}
+                                    ${{ job.budget_min }} - ${{ job.budget_max }}
+                                {% elif job.budget_min %}
+                                    ${{ job.budget_min }}+
+                                {% elif job.budget_max %}
+                                    Up to ${{ job.budget_max }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if job.estimated_duration %}
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Duration:</span>
+                            <span class="font-medium text-gray-900 dark:text-white ml-2">{{ job.estimated_duration }}h</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Location -->
+                    {% if job.address %}
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        {{ job.address|truncatechars:50 }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Posted Date -->
+                    <div class="text-xs text-gray-400 dark:text-gray-500">
+                        Posted {{ job.created_at|timesince }} ago
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                    <div class="flex space-x-3">
+                        <a href="{% url 'core:job_detail' job.id %}" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            View Details
+                        </a>
+                        <a href="{% url 'core:apply_for_job' job.id %}" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Apply Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if recommended_jobs.has_other_pages %}
+        <div class="mt-8 flex justify-center">
+            <nav class="flex items-center space-x-2">
+                {% if recommended_jobs.has_previous %}
+                <a href="?page={{ recommended_jobs.previous_page_number }}{% if skill_filter %}&skill={{ skill_filter }}{% endif %}{% if priority_filter %}&priority={{ priority_filter }}{% endif %}{% if budget_filter %}&budget={{ budget_filter }}{% endif %}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Previous
+                </a>
+                {% endif %}
+                
+                {% for num in recommended_jobs.paginator.page_range %}
+                    {% if recommended_jobs.number == num %}
+                    <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">{{ num }}</span>
+                    {% elif num > recommended_jobs.number|add:'-3' and num < recommended_jobs.number|add:'3' %}
+                    <a href="?page={{ num }}{% if skill_filter %}&skill={{ skill_filter }}{% endif %}{% if priority_filter %}&priority={{ priority_filter }}{% endif %}{% if budget_filter %}&budget={{ budget_filter }}{% endif %}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if recommended_jobs.has_next %}
+                <a href="?page={{ recommended_jobs.next_page_number }}{% if skill_filter %}&skill={{ skill_filter }}{% endif %}{% if priority_filter %}&priority={{ priority_filter }}{% endif %}{% if budget_filter %}&budget={{ budget_filter }}{% endif %}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Next
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- No Results -->
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No jobs found</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or browse all available jobs.</p>
+            <div class="mt-6">
+                <a href="{% url 'core:browse_jobs' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Browse All Jobs
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

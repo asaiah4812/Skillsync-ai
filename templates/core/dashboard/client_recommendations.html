@@ -1,0 +1,185 @@
+{% extends 'layouts/main.html' %}
+
+{% block main %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Recommended Workers</h1>
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">Workers that match your job requirements and preferences</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'core:post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Post New Job
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="skill" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skill</label>
+                    <select name="skill" id="skill" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">All Skills</option>
+                        {% for skill in all_skills %}
+                        <option value="{{ skill.name }}" {% if skill_filter == skill.name %}selected{% endif %}>{{ skill.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="experience" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Experience Level</label>
+                    <select name="experience" id="experience" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">All Levels</option>
+                        {% for level, label in experience_levels %}
+                        <option value="{{ level }}" {% if experience_filter == level %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="rating" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minimum Rating</label>
+                    <select name="rating" id="rating" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">Any Rating</option>
+                        <option value="4.5" {% if rating_filter == "4.5" %}selected{% endif %}>4.5+ Stars</option>
+                        <option value="4.0" {% if rating_filter == "4.0" %}selected{% endif %}>4.0+ Stars</option>
+                        <option value="3.5" {% if rating_filter == "3.5" %}selected{% endif %}>3.5+ Stars</option>
+                        <option value="3.0" {% if rating_filter == "3.0" %}selected{% endif %}>3.0+ Stars</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-end">
+                    <button type="submit" class="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Workers Grid -->
+        {% if recommended_workers %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for worker in recommended_workers %}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                <!-- Worker Header -->
+                <div class="p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                {{ worker.user.get_full_name|default:worker.user.username }}
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                {{ worker.get_experience_level_display }}
+                            </p>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ worker.rating|floatformat:1 }}</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">({{ worker.num_ratings }})</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Skills -->
+                    {% if worker.skills.all %}
+                    <div class="mt-4">
+                        <div class="flex flex-wrap gap-2">
+                            {% for skill in worker.skills.all|slice:":3" %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                {{ skill.name }}
+                            </span>
+                            {% endfor %}
+                            {% if worker.skills.count > 3 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                +{{ worker.skills.count|add:"-3" }} more
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Stats -->
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Jobs Completed:</span>
+                            <span class="font-medium text-gray-900 dark:text-white ml-2">{{ worker.total_jobs_completed }}</span>
+                        </div>
+                        {% if worker.hourly_rate %}
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Rate:</span>
+                            <span class="font-medium text-gray-900 dark:text-white ml-2">${{ worker.hourly_rate }}/hr</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                    <div class="flex space-x-3">
+                        <a href="{% url 'core:worker_public_profile' worker.id %}" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            View Profile
+                        </a>
+                        <a href="{% url 'core:post_job' %}" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Hire Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if recommended_workers.has_other_pages %}
+        <div class="mt-8 flex justify-center">
+            <nav class="flex items-center space-x-2">
+                {% if recommended_workers.has_previous %}
+                <a href="?page={{ recommended_workers.previous_page_number }}{% if skill_filter %}&skill={{ skill_filter }}{% endif %}{% if experience_filter %}&experience={{ experience_filter }}{% endif %}{% if rating_filter %}&rating={{ rating_filter }}{% endif %}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Previous
+                </a>
+                {% endif %}
+                
+                {% for num in recommended_workers.paginator.page_range %}
+                    {% if recommended_workers.number == num %}
+                    <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">{{ num }}</span>
+                    {% elif num > recommended_workers.number|add:'-3' and num < recommended_workers.number|add:'3' %}
+                    <a href="?page={{ num }}{% if skill_filter %}&skill={{ skill_filter }}{% endif %}{% if experience_filter %}&experience={{ experience_filter }}{% endif %}{% if rating_filter %}&rating={{ rating_filter }}{% endif %}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if recommended_workers.has_next %}
+                <a href="?page={{ recommended_workers.next_page_number }}{% if skill_filter %}&skill={{ skill_filter }}{% endif %}{% if experience_filter %}&experience={{ experience_filter }}{% endif %}{% if rating_filter %}&rating={{ rating_filter }}{% endif %}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    Next
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- No Results -->
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No workers found</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or post a job to find workers.</p>
+            <div class="mt-6">
+                <a href="{% url 'core:post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Post a Job
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

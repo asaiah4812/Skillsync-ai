@@ -6,10 +6,14 @@ app_name = 'core'
 urlpatterns = [
     path('', views.home, name='home'),
     
-    # Dashboard routes
+    # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard/client/', views.client_dashboard, name='client_dashboard'),
     path('dashboard/worker/', views.worker_dashboard, name='worker_dashboard'),
+    
+    # Recommendations
+    path('dashboard/client/recommendations/', views.client_recommendations, name='client_recommendations'),
+    path('dashboard/worker/recommendations/', views.worker_recommendations, name='worker_recommendations'),
     
     # Job management
     path('dashboard/client/jobs/', views.client_jobs, name='client_jobs'),

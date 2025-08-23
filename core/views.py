@@ -14,7 +14,7 @@ from .forms import JobForm, JobApplicationForm, WorkerProfileForm, JobSearchForm
 
 
 def home(request):
-    """Homepage with search functionality"""
+    """Homepage with search functionality and personalized recommendations"""
     # Get recent jobs and top-rated workers
     recent_jobs = Job.objects.filter(status='OPEN').order_by('-created_at')[:6]
     top_workers = WorkerProfile.objects.filter(
@@ -24,12 +24,229 @@ def home(request):
     # Get skill categories for search
     categories = SkillCategory.objects.filter(is_active=True)
     
+    # Initialize recommendation variables
+    recommended_workers = None
+    recommended_jobs = None
+    
+    # If user is logged in, show personalized recommendations
+    if request.user.is_authenticated:
+        try:
+            if request.user.user_type == 'CLIENT':
+                recommended_workers = get_recommended_workers_for_client(request.user)
+            elif request.user.user_type == 'WORKER':
+                recommended_jobs = get_recommended_jobs_for_worker(request.user)
+        except Exception as e:
+            # Log error and continue without recommendations
+            print(f"Error getting recommendations: {e}")
+            recommended_workers = None
+            recommended_jobs = None
+    
     context = {
         'recent_jobs': recent_jobs,
         'top_workers': top_workers,
         'categories': categories,
+        'recommended_workers': recommended_workers,
+        'recommended_jobs': recommended_jobs,
     }
     return render(request, 'core/index.html', context)
+
+
+def get_recommended_workers_for_client(client, limit=6):
+    """Get recommended workers for a client based on their job history and preferences"""
+    try:
+        # Get client's recent job requirements
+        recent_jobs = client.jobs_posted.filter(status__in=['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED'])
+        
+        if not recent_jobs.exists():
+            # If no job history, return top-rated workers
+            return list(WorkerProfile.objects.filter(
+                is_available=True, 
+                num_ratings__gt=0
+            ).order_by('-rating')[:limit])
+        
+        # Get skills from recent jobs
+        required_skills = set()
+        for job in recent_jobs:
+            required_skills.update(job.required_skills.all())
+        
+        # Get workers with matching skills
+        matching_workers = list(WorkerProfile.objects.filter(
+            is_available=True,
+            skills__in=required_skills
+        ).distinct())
+        
+        # If not enough matching workers, add top-rated workers
+        if len(matching_workers) < limit:
+            top_workers = list(WorkerProfile.objects.filter(
+                is_available=True,
+                num_ratings__gt=0
+            ).exclude(id__in=[w.id for w in matching_workers])[:limit - len(matching_workers)])
+            matching_workers.extend(top_workers)
+        
+        # Sort by rating and availability, ensure we have valid objects
+        valid_workers = [w for w in matching_workers if w and hasattr(w, 'id')]
+        sorted_workers = sorted(
+            valid_workers[:limit], 
+            key=lambda w: (w.rating, w.is_available), 
+            reverse=True
+        )
+        
+        return sorted_workers
+        
+    except Exception as e:
+        # Fallback to top workers
+        try:
+            return list(WorkerProfile.objects.filter(
+                is_available=True, 
+                num_ratings__gt=0
+            ).order_by('-rating')[:limit])
+        except Exception:
+            return []
+
+
+def get_recommended_jobs_for_worker(worker_user, limit=6):
+    """Get recommended jobs for a worker based on their skills and preferences"""
+    try:
+        # Get worker profile
+        worker_profile = getattr(worker_user, 'worker_profile', None)
+        if not worker_profile:
+            return list(Job.objects.filter(status='OPEN').order_by('-created_at')[:limit])
+        
+        # Get worker's skills
+        worker_skills = worker_profile.skills.all()
+        
+        if not worker_skills.exists():
+            # If no skills, return recent open jobs
+            return list(Job.objects.filter(status='OPEN').order_by('-created_at')[:limit])
+        
+        # Get jobs with matching skills
+        matching_jobs = list(Job.objects.filter(
+            status='OPEN',
+            required_skills__in=worker_skills
+        ).distinct())
+        
+        # If not enough matching jobs, add recent open jobs
+        if len(matching_jobs) < limit:
+            recent_jobs = list(Job.objects.filter(status='OPEN').exclude(
+                id__in=[j.id for j in matching_jobs]
+            )[:limit - len(matching_jobs)])
+            matching_jobs.extend(recent_jobs)
+        
+        # Sort by priority and creation date, ensure we have valid objects
+        valid_jobs = [j for j in matching_jobs if j and hasattr(j, 'id')]
+        sorted_jobs = sorted(
+            valid_jobs[:limit],
+            key=lambda j: (j.priority, j.created_at),
+            reverse=True
+        )
+        
+        return sorted_jobs
+        
+    except Exception as e:
+        # Fallback to recent open jobs
+        try:
+            return list(Job.objects.filter(status='OPEN').order_by('-created_at')[:limit])
+        except Exception:
+            return []
+
+
+@login_required
+def client_recommendations(request):
+    """Client's personalized worker recommendations page"""
+    if request.user.user_type != 'CLIENT':
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    
+    # Get recommended workers
+    recommended_workers = get_recommended_workers_for_client(request.user, limit=20)
+    
+    # Get search filters
+    skill_filter = request.GET.get('skill', '')
+    experience_filter = request.GET.get('experience', '')
+    rating_filter = request.GET.get('rating', '')
+    
+    # Apply filters
+    if skill_filter:
+        recommended_workers = [w for w in recommended_workers if 
+                             any(skill_filter.lower() in skill.name.lower() 
+                                  for skill in w.skills.all())]
+    
+    if experience_filter:
+        recommended_workers = [w for w in recommended_workers if 
+                             w.experience_level == experience_filter]
+    
+    if rating_filter:
+        min_rating = float(rating_filter)
+        recommended_workers = [w for w in recommended_workers if w.rating >= min_rating]
+    
+    # Pagination
+    paginator = Paginator(recommended_workers, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get all skills and experience levels for filters
+    all_skills = Skill.objects.filter(is_active=True)
+    experience_levels = WorkerProfile.EXPERIENCE_LEVELS
+    
+    context = {
+        'recommended_workers': page_obj,
+        'all_skills': all_skills,
+        'experience_levels': experience_levels,
+        'skill_filter': skill_filter,
+        'experience_filter': experience_filter,
+        'rating_filter': rating_filter,
+    }
+    return render(request, 'core/dashboard/client_recommendations.html', context)
+
+
+@login_required
+def worker_recommendations(request):
+    """Worker's personalized job recommendations page"""
+    if request.user.user_type != 'WORKER':
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    
+    # Get recommended jobs
+    recommended_jobs = get_recommended_jobs_for_worker(request.user, limit=20)
+    
+    # Get search filters
+    skill_filter = request.GET.get('skill', '')
+    priority_filter = request.GET.get('priority', '')
+    budget_filter = request.GET.get('budget', '')
+    
+    # Apply filters
+    if skill_filter:
+        recommended_jobs = [j for j in recommended_jobs if 
+                           any(skill_filter.lower() in skill.name.lower() 
+                                for skill in j.required_skills.all())]
+    
+    if priority_filter:
+        recommended_jobs = [j for j in recommended_jobs if j.priority == priority_filter]
+    
+    if budget_filter:
+        max_budget = float(budget_filter)
+        recommended_jobs = [j for j in recommended_jobs if 
+                           (j.budget_max and j.budget_max <= max_budget) or 
+                           (j.budget_min and j.budget_min <= max_budget)]
+    
+    # Pagination
+    paginator = Paginator(recommended_jobs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get all skills and priority levels for filters
+    all_skills = Skill.objects.filter(is_active=True)
+    priority_levels = Job.PRIORITY_LEVELS
+    
+    context = {
+        'recommended_jobs': page_obj,
+        'all_skills': all_skills,
+        'priority_levels': priority_levels,
+        'skill_filter': skill_filter,
+        'priority_filter': priority_filter,
+        'budget_filter': budget_filter,
+    }
+    return render(request, 'core/dashboard/worker_recommendations.html', context)
 
 
 @login_required
