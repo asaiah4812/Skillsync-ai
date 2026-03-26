@@ -14,40 +14,40 @@ class JobForm(forms.ModelForm):
         ]
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'placeholder': 'Enter job title'
             }),
             'description': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'rows': 4,
                 'placeholder': 'Describe the job requirements and details'
             }),
             'location': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'placeholder': 'City, State or coordinates'
             }),
             'address': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'rows': 3,
                 'placeholder': 'Full address where the work will be done'
             }),
             'budget_min': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'placeholder': 'Minimum budget'
             }),
             'budget_max': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'placeholder': 'Maximum budget'
             }),
             'estimated_duration': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'placeholder': 'Estimated hours'
             }),
             'priority': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
             }),
             'scheduled_for': forms.DateTimeInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'type': 'datetime-local'
             }),
             'required_skills': forms.SelectMultiple(attrs={
@@ -68,16 +68,16 @@ class JobApplicationForm(forms.ModelForm):
         fields = ['cover_letter', 'proposed_rate', 'estimated_completion']
         widgets = {
             'cover_letter': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'rows': 4,
                 'placeholder': 'Explain why you\'re the best fit for this job...'
             }),
             'proposed_rate': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'placeholder': 'Your proposed hourly rate'
             }),
             'estimated_completion': forms.DateTimeInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'type': 'datetime-local'
             })
         }
@@ -92,19 +92,19 @@ class WorkerProfileForm(forms.ModelForm):
         ]
         widgets = {
             'bio': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'rows': 4,
                 'placeholder': 'Tell clients about your experience and expertise...'
             }),
             'hourly_rate': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'class': 'ss-input w-full',
                 'placeholder': 'Your hourly rate'
             }),
             'experience_level': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
             }),
             'is_available': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
+                'class': 'rounded border-gray-300'
             }),
             'skills': forms.SelectMultiple(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'

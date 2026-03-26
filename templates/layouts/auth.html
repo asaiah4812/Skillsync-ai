@@ -1,52 +1,11 @@
-<!DOCTYPE html>
-<html lang="en" x-data="{ darkMode: false }" :class="{ 'dark': darkMode }">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillSync - Authentication</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3B82F6',
-                        secondary: '#10B981'
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300 min-h-screen flex items-center justify-center p-4">
-    <!-- Background Pattern -->
-    <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
-    
-    <!-- Content -->
-    <div class="relative w-full max-w-sm">
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="ss-auth-wrap">
+    <div class="ss-auth-body">
         {% block auth %}
         {% endblock %}
     </div>
-    
-    <!-- Dark Mode Toggle -->
-    <div class="fixed top-4 right-4">
-        <button @click="darkMode = !darkMode" class="p-2 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200">
-            <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-            </svg>
-            <svg x-show="darkMode" class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-            </svg>
-        </button>
-    </div>
-    
-    <!-- Footer -->
-    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full">
-            &copy; 2024 SkillSync. All rights reserved.
-        </p>
-    </div>
-</body>
-</html>
+    <p class="ss-auth-footer">&copy; {% now "Y" %} SkillSwap — FUK</p>
+</div>
+{% endblock %}

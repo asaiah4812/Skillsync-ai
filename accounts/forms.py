@@ -1,50 +1,60 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
+import re
 from .models import User
 
 
 class UserRegistrationForm(UserCreationForm):
-    """Custom registration form with additional fields"""
+    """FUK-only student registration form."""
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
-        'placeholder': 'Enter your email'
+        'class': 'ss-input w-full',
+        'placeholder': 'Enter your university email'
     }))
-    first_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
-        'placeholder': 'First name'
-    }))
-    last_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
-        'placeholder': 'Last name'
-    }))
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
-        'placeholder': 'Phone number (optional)'
-    }))
-    user_type = forms.ChoiceField(choices=User.USER_TYPES, widget=forms.Select(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm'
+    matriculation_number = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={
+        'class': 'ss-input w-full',
+        'placeholder': 'e.g. FUK/CSC/20/1234'
     }))
     
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+        'class': 'ss-input w-full',
         'placeholder': 'Enter your password'
     }))
     password2 = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+        'class': 'ss-input w-full',
         'placeholder': 'Confirm your password'
     }))
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'phone', 'user_type', 'password1', 'password2')
+        fields = ('username', 'email', 'matriculation_number', 'password1', 'password2')
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].widget.attrs.update({
-            'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+            'class': 'ss-input w-full',
             'placeholder': 'Choose a username'
         })
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        allowed_domains = {'fukashere.edu.ng', 'stu.fukashere.edu.ng'}
+        if '@' not in email:
+            raise ValidationError('Enter a valid university email address.')
+        domain = email.split('@', 1)[1]
+        if domain not in allowed_domains:
+            raise ValidationError('Use your Federal University of Kashere email address.')
+        return email
+
+    def clean_matriculation_number(self):
+        matric = self.cleaned_data['matriculation_number'].strip().upper()
+        # Accept values like FUK/CSC/20/1234 or FUK/ENG/2021/0099
+        if not re.match(r'^FUK/[A-Z]{2,6}/\d{2,4}/\d{2,6}$', matric):
+            raise ValidationError('Enter a valid FUK matriculation number format.')
+        if User.objects.filter(matriculation_number=matric).exists():
+            raise ValidationError('This matriculation number is already registered.')
+        return matric
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -54,62 +64,84 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = ('first_name', 'last_name', 'email', 'phone')
         widgets = {
             'first_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+                'class': 'ss-input w-full',
                 'placeholder': 'First name'
             }),
             'last_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+                'class': 'ss-input w-full',
                 'placeholder': 'Last name'
             }),
             'email': forms.EmailInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+                'class': 'ss-input w-full',
                 'placeholder': 'Email address'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+                'class': 'ss-input w-full',
                 'placeholder': 'Phone number'
             }),
         }
 
 
+def _user_from_login_identifier(raw):
+    """Resolve login field to a User by email, username, or matriculation number."""
+    raw = (raw or '').strip()
+    if not raw:
+        return None
+    # University email (case-insensitive)
+    u = User.objects.filter(email__iexact=raw).first()
+    if u:
+        return u
+    # Username (case-insensitive)
+    u = User.objects.filter(username__iexact=raw).first()
+    if u:
+        return u
+    # Matriculation number (stored uppercase, e.g. FUK/CSC/20/1234)
+    matric = raw.upper().replace(' ', '')
+    return User.objects.filter(matriculation_number=matric).first()
+
+
 class UserLoginForm(AuthenticationForm):
-    """Custom login form with styled widgets"""
-    username = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
-        'placeholder': 'Enter your username or email'
-    }))
+    """Login with university email, username, or matriculation number + password."""
+    username = forms.CharField(
+        label='Login',
+        widget=forms.TextInput(attrs={
+            'class': 'ss-input w-full',
+            'placeholder': 'Email, username, or matric number',
+            'autocomplete': 'username',
+        }),
+    )
     password = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
-        'placeholder': 'Enter your password'
+        'class': 'ss-input w-full',
+        'placeholder': 'Enter your password',
+        'autocomplete': 'current-password',
     }))
-    
+
     def clean(self):
-        username = self.cleaned_data.get('username')
+        identifier = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
-        
-        if username and password:
-            # Try to authenticate with username first, then email
-            user = authenticate(username=username, password=password)
-            if user is None:
-                # Try with email
-                try:
-                    user_obj = User.objects.get(email=username)
-                    user = authenticate(username=user_obj.username, password=password)
-                except User.DoesNotExist:
-                    pass
-            
-            if user is None:
-                raise forms.ValidationError('Invalid username/email or password.')
-            elif not user.is_active:
-                raise forms.ValidationError('This account is inactive.')
-        
+
+        if identifier is not None:
+            identifier = identifier.strip()
+        if not identifier or not password:
+            raise forms.ValidationError('Please enter both login and password.')
+
+        user_obj = _user_from_login_identifier(identifier)
+        if user_obj is None:
+            raise forms.ValidationError('Invalid login or password.')
+
+        user = authenticate(request=self.request, username=user_obj.username, password=password)
+        if user is None:
+            raise forms.ValidationError('Invalid login or password.')
+
+        self.user_cache = user
+        self.confirm_login_allowed(user)
         return self.cleaned_data
 
 
 class CustomPasswordResetForm(PasswordResetForm):
     """Custom password reset form with styled widgets"""
     email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+        'class': 'ss-input w-full',
         'placeholder': 'Enter your email address'
     }))
 
@@ -117,10 +149,10 @@ class CustomPasswordResetForm(PasswordResetForm):
 class CustomSetPasswordForm(SetPasswordForm):
     """Custom set password form with styled widgets"""
     new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+        'class': 'ss-input w-full',
         'placeholder': 'Enter new password'
     }))
     new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm',
+        'class': 'ss-input w-full',
         'placeholder': 'Confirm new password'
     }))

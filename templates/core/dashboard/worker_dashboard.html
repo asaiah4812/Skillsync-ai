@@ -1,14 +1,14 @@
 {% extends 'layouts/main.html' %}
 
 {% block main %}
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Worker Dashboard</h1>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Track your applications and earnings</p>
+                    <h1 class="text-3xl font-bold text-gray-900">Worker Dashboard</h1>
+                    <p class="mt-1 text-sm text-gray-500">Track your applications and earnings</p>
                 </div>
             </div>
         </div>
@@ -27,7 +27,7 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <div class="bg-white shadow rounded-lg p-6">
                 <div class="flex items-center">
                     <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,13 +35,13 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Earnings</p>
-                        <p class="text-lg font-medium text-gray-900 dark:text-white">${{ total_earnings|floatformat:2 }}</p>
+                        <p class="text-sm font-medium text-gray-500">Total Earnings</p>
+                        <p class="text-lg font-medium text-gray-900">${{ total_earnings|floatformat:2 }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <div class="bg-white shadow rounded-lg p-6">
                 <div class="flex items-center">
                     <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,13 +49,13 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Jobs</p>
-                        <p class="text-lg font-medium text-gray-900 dark:text-white">{{ active_jobs.count }}</p>
+                        <p class="text-sm font-medium text-gray-500">Active Jobs</p>
+                        <p class="text-lg font-medium text-gray-900">{{ active_jobs.count }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <div class="bg-white shadow rounded-lg p-6">
                 <div class="flex items-center">
                     <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,13 +63,13 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Rating</p>
-                        <p class="text-lg font-medium text-gray-900 dark:text-white">{{ avg_rating|floatformat:1 }}/5.0</p>
+                        <p class="text-sm font-medium text-gray-500">Rating</p>
+                        <p class="text-lg font-medium text-gray-900">{{ avg_rating|floatformat:1 }}/5.0</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <div class="bg-white shadow rounded-lg p-6">
                 <div class="flex items-center">
                     <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,8 +77,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Acceptance Rate</p>
-                        <p class="text-lg font-medium text-gray-900 dark:text-white">{{ acceptance_rate|floatformat:1 }}%</p>
+                        <p class="text-sm font-medium text-gray-500">Acceptance Rate</p>
+                        <p class="text-lg font-medium text-gray-900">{{ acceptance_rate|floatformat:1 }}%</p>
                     </div>
                 </div>
             </div>
@@ -87,30 +87,27 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Recent Applications -->
             <div class="lg:col-span-2">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Recent Applications</h3>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Recent Applications</h3>
                     </div>
                     <div class="p-6">
                         {% if applications %}
                             <div class="space-y-4">
                                 {% for application in applications|slice:":5" %}
-                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                         <div>
-                                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ application.job.title }}</p>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">Applied {{ application.applied_at|timesince }} ago</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ application.job.title }}</p>
+                                            <p class="text-sm text-gray-500">Applied {{ application.applied_at|timesince }} ago</p>
                                         </div>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            {% if application.status == 'PENDING' %}bg-yellow-100 text-yellow-800
-                                            {% elif application.status == 'ACCEPTED' %}bg-green-100 text-green-800
-                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if application.status == 'PENDING' %}bg-yellow-100 text-yellow-800 {% elif application.status == 'ACCEPTED' %}bg-green-100 text-green-800 {% else %}bg-red-100 text-red-800{% endif %}">
                                             {{ application.get_status_display }}
                                         </span>
                                     </div>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <p class="text-center text-gray-500 dark:text-gray-400">No applications yet</p>
+                            <p class="text-center text-gray-500">No applications yet</p>
                         {% endif %}
                     </div>
                 </div>
@@ -118,18 +115,18 @@
 
             <!-- Quick Actions -->
             <div class="space-y-6">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Quick Actions</h3>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
                     </div>
                     <div class="p-6 space-y-3">
-                        <a href="{% url 'core:browse_jobs' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <a href="{% url 'core:browse_jobs' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                             Browse All Jobs
                         </a>
-                        <a href="{% url 'core:worker_recommendations' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <a href="{% url 'core:worker_recommendations' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                             </svg>
@@ -141,9 +138,9 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">This Month</h3>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">This Month</h3>
                     </div>
                     <div class="p-6">
                         <div class="space-y-2">

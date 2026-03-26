@@ -1,0 +1,49 @@
+{% extends 'layouts/main.html' %}
+{% load static %}
+{% block main %}
+<div class="ss-dashboard">
+    <div class="ss-container">
+        <div class="ss-dashboard__grid">
+            <aside class="ss-sidebar">
+                <div class="ss-sidebar__user">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" class="ss-avatar" style="width:2.5rem;height:2.5rem;object-fit:cover;border-radius:999px;" alt="">
+                    {% else %}
+                        <div class="ss-avatar" style="width:2.5rem;height:2.5rem;font-size:0.85rem;">
+                            {{ user.first_name|default:user.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <p>Welcome back</p>
+                        <strong>{{ user.get_full_name|default:user.username }}</strong>
+                    </div>
+                </div>
+                <nav>
+                    {% if user.user_type == 'CLIENT' %}
+                        <a href="{% url 'core:client_dashboard' %}">Dashboard</a>
+                        <a href="{% url 'core:client_jobs' %}">My jobs</a>
+                        <a href="{% url 'core:client_draft_jobs' %}">Drafts</a>
+                        <a href="{% url 'core:client_recommendations' %}">Recommendations</a>
+                        <a href="{% url 'core:post_job' %}" class="ss-btn ss-btn--primary ss-btn--sm ss-btn--block ss-mt-1" style="margin-top:0.5rem;text-align:center;">Post request</a>
+                    {% elif user.user_type == 'WORKER' %}
+                        <a href="{% url 'core:worker_dashboard' %}">Dashboard</a>
+                        <a href="{% url 'core:worker_applications' %}">Applications</a>
+                        <a href="{% url 'core:worker_profile' %}">Profile</a>
+                        <a href="{% url 'core:worker_recommendations' %}">Recommendations</a>
+                    {% endif %}
+
+                    {% if user.is_staff or user.user_type == 'ADMIN' %}
+                        <div class="ss-sidebar__section">Administration</div>
+                        <a href="{% url 'core:admin_dashboard' %}">Admin dashboard</a>
+                        <a href="/admin/">Django admin</a>
+                    {% endif %}
+                </nav>
+            </aside>
+
+            <main>
+                {% block dashboard_content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

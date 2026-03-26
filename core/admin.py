@@ -37,11 +37,11 @@ class WorkerAvailabilityInline(admin.TabularInline):
 
 @admin.register(WorkerProfile)
 class WorkerProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'experience_level', 'hourly_rate', 'rating', 'num_ratings', 'total_jobs_completed', 'is_available', 'background_verified')
-    list_filter = ('experience_level', 'is_available', 'background_verified', 'created_at')
+    list_display = ('user', 'experience_level', 'hourly_rate', 'rating', 'num_ratings', 'total_jobs_completed', 'is_available', 'background_verified', 'is_approved')
+    list_filter = ('experience_level', 'is_available', 'background_verified', 'is_approved', 'created_at')
     search_fields = ('user__username', 'user__email', 'user__first_name', 'user__last_name', 'bio')
     ordering = ('-created_at',)
-    list_editable = ('is_available', 'background_verified')
+    list_editable = ('is_available', 'background_verified', 'is_approved')
     readonly_fields = ('rating', 'num_ratings', 'total_jobs_completed', 'created_at', 'updated_at')
     inlines = [WorkerSkillInline, WorkerAvailabilityInline]
     
@@ -89,11 +89,11 @@ class RatingInline(admin.TabularInline):
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('title', 'client', 'status', 'priority', 'budget_min', 'budget_max', 'assigned_worker', 'created_at')
-    list_filter = ('status', 'priority', 'created_at', 'scheduled_for')
+    list_display = ('title', 'client', 'status', 'priority', 'budget_min', 'budget_max', 'assigned_worker', 'is_approved', 'created_at')
+    list_filter = ('status', 'priority', 'is_approved', 'created_at', 'scheduled_for')
     search_fields = ('title', 'description', 'client__username', 'client__first_name', 'client__last_name', 'location')
     ordering = ('-created_at',)
-    list_editable = ('status', 'priority')
+    list_editable = ('status', 'priority', 'is_approved')
     readonly_fields = ('id', 'created_at', 'updated_at')
     autocomplete_fields = ('client', 'assigned_worker', 'required_skills')
     inlines = [JobApplicationInline, RatingInline]

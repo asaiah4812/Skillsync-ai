@@ -55,6 +55,7 @@ class WorkerProfile(models.Model):
     total_jobs_completed = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)
     background_verified = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=False, help_text="Approved by admin to be publicly visible")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -123,6 +124,7 @@ class Job(models.Model):
     priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS, default='MEDIUM')
     status = models.CharField(max_length=20, choices=JOB_STATUS, default='DRAFT')
     assigned_worker = models.ForeignKey(WorkerProfile, null=True, blank=True, on_delete=models.SET_NULL)
+    is_approved = models.BooleanField(default=False, help_text="Approved by admin to be publicly listed")
     scheduled_for = models.DateTimeField(null=True, blank=True)
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)

@@ -1,16 +1,16 @@
 {% extends 'layouts/main.html' %}
 
 {% block main %}
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="min-h-screen bg-gray-50">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+                    <h1 class="text-3xl font-bold text-gray-900">
                         {% if form.instance.pk %}Edit Job{% else %}Post New Job{% endif %}
                     </h1>
-                    <p class="mt-2 text-gray-600 dark:text-gray-400">
+                    <p class="mt-2 text-gray-600">
                         {% if form.instance.pk %}
                             {% if is_publishing_draft %}
                                 Review and publish your draft job
@@ -22,7 +22,7 @@
                         {% endif %}
                     </p>
                 </div>
-                <a href="{% url 'core:client_jobs' %}" class="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+                <a href="{% url 'core:client_jobs' %}" class="text-blue-600 hover:text-blue-500">
                     ← Back to Jobs
                 </a>
             </div>
@@ -39,31 +39,31 @@
         {% endif %}
 
         <!-- Job Form -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="bg-white shadow rounded-lg">
             <form method="post" class="p-6 space-y-6">
                 {% csrf_token %}
                 
                 <!-- Basic Information -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                 Job Title *
                             </label>
                             {{ form.title }}
                             {% if form.title.errors %}
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.title.errors.0 }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
                             {% endif %}
                         </div>
                         
                         <div>
-                            <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                 Priority Level
                             </label>
                             {{ form.priority }}
                             {% if form.priority.errors %}
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.priority.errors.0 }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ form.priority.errors.0 }}</p>
                             {% endif %}
                         </div>
                     </div>
@@ -71,39 +71,39 @@
 
                 <!-- Description -->
                 <div>
-                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         Job Description *
                     </label>
                     {{ form.description }}
                     {% if form.description.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.description.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
                     {% endif %}
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p class="mt-1 text-sm text-gray-500">
                         Provide detailed information about the job requirements, scope, and expectations.
                     </p>
                 </div>
 
                 <!-- Location -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Location</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Location</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                 Location *
                             </label>
                             {{ form.location }}
                             {% if form.location.errors %}
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.location.errors.0 }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ form.location.errors.0 }}</p>
                             {% endif %}
                         </div>
                         
                         <div>
-                            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                 Full Address *
                             </label>
                             {{ form.address }}
                             {% if form.address.errors %}
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.address.errors.0 }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
                             {% endif %}
                         </div>
                     </div>
@@ -111,35 +111,35 @@
 
                 <!-- Budget and Duration -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Budget & Timeline</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Budget & Timeline</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label for="{{ form.budget_min.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label for="{{ form.budget_min.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                 Minimum Budget ($)
                             </label>
                             {{ form.budget_min }}
                             {% if form.budget_min.errors %}
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.budget_min.errors.0 }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ form.budget_min.errors.0 }}</p>
                             {% endif %}
                         </div>
                         
                         <div>
-                            <label for="{{ form.budget_max.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label for="{{ form.budget_max.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                 Maximum Budget ($)
                             </label>
                             {{ form.budget_max }}
                             {% if form.budget_max.errors %}
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.budget_max.errors.0 }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ form.budget_max.errors.0 }}</p>
                             {% endif %}
                         </div>
                         
                         <div>
-                            <label for="{{ form.estimated_duration.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label for="{{ form.estimated_duration.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                 Estimated Duration (hours)
                             </label>
                             {{ form.estimated_duration }}
                             {% if form.estimated_duration.errors %}
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.estimated_duration.errors.0 }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ form.estimated_duration.errors.0 }}</p>
                             {% endif %}
                         </div>
                     </div>
@@ -147,40 +147,40 @@
 
                 <!-- Required Skills -->
                 <div>
-                    <label for="{{ form.required_skills.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="{{ form.required_skills.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         Required Skills
                     </label>
                     {{ form.required_skills }}
                     {% if form.required_skills.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.required_skills.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.required_skills.errors.0 }}</p>
                     {% endif %}
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p class="mt-1 text-sm text-gray-500">
                         Select the skills required for this job. Hold Ctrl/Cmd to select multiple skills.
                     </p>
                 </div>
 
                 <!-- Scheduling -->
                 <div>
-                    <label for="{{ form.scheduled_for.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="{{ form.scheduled_for.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         Scheduled Date & Time
                     </label>
                     {{ form.scheduled_for }}
                     {% if form.scheduled_for.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.scheduled_for.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.scheduled_for.errors.0 }}</p>
                     {% endif %}
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p class="mt-1 text-sm text-gray-500">
                         When you'd like the work to be completed (optional).
                     </p>
                 </div>
 
                 <!-- Form Actions -->
-                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                     <a href="{% url 'core:client_jobs' %}" 
-                       class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                       class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Cancel
                     </a>
                     <button type="submit" name="save_draft" value="draft"
-                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Save as Draft
                     </button>
                     <button type="submit" name="publish" value="publish"

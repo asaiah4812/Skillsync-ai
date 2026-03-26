@@ -1,16 +1,16 @@
 {% extends 'layouts/main.html' %}
 
 {% block main %}
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="min-h-screen bg-gray-50">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Worker Profile</h1>
-                    <p class="mt-2 text-gray-600 dark:text-gray-400">Manage your profile and showcase your skills</p>
+                    <h1 class="text-3xl font-bold text-gray-900">Worker Profile</h1>
+                    <p class="mt-2 text-gray-600">Manage your profile and showcase your skills</p>
                 </div>
-                <a href="{% url 'core:worker_dashboard' %}" class="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+                <a href="{% url 'core:worker_dashboard' %}" class="text-blue-600 hover:text-blue-500">
                     ← Back to Dashboard
                 </a>
             </div>
@@ -29,9 +29,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Profile Information -->
             <div class="lg:col-span-2">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Profile Information</h2>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">Profile Information</h2>
                     </div>
                     <div class="p-6">
                         <form method="post" class="space-y-6">
@@ -39,53 +39,53 @@
                             
                             <!-- Bio -->
                             <div>
-                                <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                     Bio
                                 </label>
                                 {{ form.bio }}
                                 {% if form.bio.errors %}
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.bio.errors.0 }}</p>
+                                    <p class="mt-1 text-sm text-red-600">{{ form.bio.errors.0 }}</p>
                                 {% endif %}
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                <p class="mt-1 text-sm text-gray-500">
                                     Tell clients about your experience, expertise, and what makes you unique.
                                 </p>
                             </div>
 
                             <!-- Experience Level -->
                             <div>
-                                <label for="{{ form.experience_level.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="{{ form.experience_level.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                     Experience Level
                                 </label>
                                 {{ form.experience_level }}
                                 {% if form.experience_level.errors %}
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.experience_level.errors.0 }}</p>
+                                    <p class="mt-1 text-sm text-red-600">{{ form.experience_level.errors.0 }}</p>
                                 {% endif %}
                             </div>
 
                             <!-- Hourly Rate -->
                             <div>
-                                <label for="{{ form.hourly_rate.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="{{ form.hourly_rate.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                     Hourly Rate ($)
                                 </label>
                                 {{ form.hourly_rate }}
                                 {% if form.hourly_rate.errors %}
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.hourly_rate.errors.0 }}</p>
+                                    <p class="mt-1 text-sm text-red-600">{{ form.hourly_rate.errors.0 }}</p>
                                 {% endif %}
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                <p class="mt-1 text-sm text-gray-500">
                                     Your standard hourly rate for jobs.
                                 </p>
                             </div>
 
                             <!-- Skills -->
                             <div>
-                                <label for="{{ form.skills.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="{{ form.skills.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                     Skills
                                 </label>
                                 {{ form.skills }}
                                 {% if form.skills.errors %}
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.skills.errors.0 }}</p>
+                                    <p class="mt-1 text-sm text-red-600">{{ form.skills.errors.0 }}</p>
                                 {% endif %}
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                <p class="mt-1 text-sm text-gray-500">
                                     Select the skills you have. Hold Ctrl/Cmd to select multiple skills.
                                 </p>
                             </div>
@@ -93,11 +93,11 @@
                             <!-- Availability -->
                             <div class="flex items-center">
                                 {{ form.is_available }}
-                                <label for="{{ form.is_available.id_for_label }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                <label for="{{ form.is_available.id_for_label }}" class="ml-2 text-sm text-gray-700">
                                     Available for new jobs
                                 </label>
                                 {% if form.is_available.errors %}
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.is_available.errors.0 }}</p>
+                                    <p class="mt-1 text-sm text-red-600">{{ form.is_available.errors.0 }}</p>
                                 {% endif %}
                             </div>
 
@@ -116,9 +116,9 @@
             <!-- Profile Stats -->
             <div class="space-y-6">
                 <!-- Profile Summary -->
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Profile Summary</h3>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Profile Summary</h3>
                     </div>
                     <div class="p-6">
                         <div class="space-y-4">
@@ -129,8 +129,8 @@
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Rating</p>
-                                    <p class="text-lg font-medium text-gray-900 dark:text-white">{{ worker_profile.rating|floatformat:1 }}/5.0</p>
+                                    <p class="text-sm font-medium text-gray-500">Rating</p>
+                                    <p class="text-lg font-medium text-gray-900">{{ worker_profile.rating|floatformat:1 }}/5.0</p>
                                 </div>
                             </div>
                             
@@ -141,8 +141,8 @@
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Jobs Completed</p>
-                                    <p class="text-lg font-medium text-gray-900 dark:text-white">{{ worker_profile.total_jobs_completed }}</p>
+                                    <p class="text-sm font-medium text-gray-500">Jobs Completed</p>
+                                    <p class="text-lg font-medium text-gray-900">{{ worker_profile.total_jobs_completed }}</p>
                                 </div>
                             </div>
                             
@@ -153,8 +153,8 @@
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Skills</p>
-                                    <p class="text-lg font-medium text-gray-900 dark:text-white">{{ worker_profile.skills.count }}</p>
+                                    <p class="text-sm font-medium text-gray-500">Skills</p>
+                                    <p class="text-lg font-medium text-gray-900">{{ worker_profile.skills.count }}</p>
                                 </div>
                             </div>
                             
@@ -165,7 +165,7 @@
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</p>
+                                    <p class="text-sm font-medium text-gray-500">Status</p>
                                     <p class="text-lg font-medium {% if worker_profile.is_available %}text-green-600{% else %}text-red-600{% endif %}">
                                         {% if worker_profile.is_available %}Available{% else %}Unavailable{% endif %}
                                     </p>
@@ -176,9 +176,9 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Quick Actions</h3>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
                     </div>
                     <div class="p-6 space-y-3">
                         <a href="{% url 'core:home' %}" class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">

@@ -11,14 +11,294 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import *
 from .forms import JobForm, JobApplicationForm, WorkerProfileForm, JobSearchForm, WorkerSearchForm
+from .ai_services import AIMatchingEngine
+from django.contrib.auth import get_user_model
+
+
+def user_has_learning_access(user):
+    """
+    Hybrid access for workers/learners: free if at least one skill is listed,
+    else an active subscription. Clients (job/request posters) always have access.
+    """
+    if not user.is_authenticated:
+        return False
+    ut = getattr(user, 'user_type', None)
+    # Clients post skill requests — they are not required to list a worker skill
+    if ut == 'CLIENT':
+        return True
+    if ut == 'ADMIN' or getattr(user, 'is_staff', False):
+        return True
+    # Workers: need a listed skill or learner subscription
+    return bool(getattr(user, 'has_listed_skill', False) or getattr(user, 'subscription_active', False))
+
+
+def enforce_learning_access(request):
+    """Guard views that require platform participation access."""
+    if user_has_learning_access(request.user):
+        return None
+    messages.warning(
+        request,
+        'List at least one skill for free access, or activate subscription to continue.'
+    )
+    return redirect('core:home')
+
+
+@login_required
+def admin_dashboard(request):
+    """Lightweight admin dashboard to approve jobs and workers"""
+    if not (request.user.is_staff or getattr(request.user, 'user_type', '') == 'ADMIN'):
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+
+    # Filters
+    job_query = request.GET.get('jq', '')
+    worker_query = request.GET.get('wq', '')
+    user_query = request.GET.get('uq', '')
+    job_status = request.GET.get('status', '')
+    job_approval = request.GET.get('japproved', '')
+    worker_approval = request.GET.get('wapproved', '')
+    user_type = request.GET.get('utype', '')
+    user_active = request.GET.get('uactive', '')
+
+    jobs_qs = Job.objects.all().order_by('-created_at')
+    if job_query:
+        jobs_qs = jobs_qs.filter(Q(title__icontains=job_query) | Q(description__icontains=job_query) | Q(client__username__icontains=job_query))
+    if job_status:
+        jobs_qs = jobs_qs.filter(status=job_status)
+    if job_approval in ['approved', 'pending']:
+        jobs_qs = jobs_qs.filter(is_approved=(job_approval == 'approved'))
+
+    workers_qs = WorkerProfile.objects.select_related('user').all().order_by('-created_at')
+    if worker_query:
+        workers_qs = workers_qs.filter(Q(user__first_name__icontains=worker_query) | Q(user__last_name__icontains=worker_query) | Q(user__username__icontains=worker_query))
+    if worker_approval in ['approved', 'pending']:
+        workers_qs = workers_qs.filter(is_approved=(worker_approval == 'approved'))
+
+    # Simple pagination
+    jobs_page = Paginator(jobs_qs, 10).get_page(request.GET.get('jpage'))
+    workers_page = Paginator(workers_qs, 10).get_page(request.GET.get('wpage'))
+    # Users
+    UserModel = get_user_model()
+    users_qs = UserModel.objects.all().order_by('-date_joined')
+    if user_query:
+        users_qs = users_qs.filter(
+            Q(username__icontains=user_query) |
+            Q(email__icontains=user_query) |
+            Q(first_name__icontains=user_query) |
+            Q(last_name__icontains=user_query)
+        )
+    if user_type:
+        users_qs = users_qs.filter(user_type=user_type)
+    if user_active in ['active', 'inactive']:
+        users_qs = users_qs.filter(is_active=(user_active == 'active'))
+    users_page = Paginator(users_qs, 10).get_page(request.GET.get('upage'))
+
+    # KPIs
+    total_jobs = Job.objects.count()
+    pending_jobs_count = Job.objects.filter(is_approved=False).count()
+    total_workers = WorkerProfile.objects.count()
+    pending_workers_count = WorkerProfile.objects.filter(is_approved=False).count()
+    completed_jobs = Job.objects.filter(status='COMPLETED').count()
+    total_users = UserModel.objects.count()
+    active_users = UserModel.objects.filter(is_active=True).count()
+
+    context = {
+        'jobs': jobs_page,
+        'workers': workers_page,
+        'users': users_page,
+        'kpi': {
+            'total_jobs': total_jobs,
+            'pending_jobs': pending_jobs_count,
+            'total_workers': total_workers,
+            'pending_workers': pending_workers_count,
+            'completed_jobs': completed_jobs,
+            'total_users': total_users,
+            'active_users': active_users,
+        },
+        'filters': {
+            'job_query': job_query,
+            'worker_query': worker_query,
+            'user_query': user_query,
+            'job_status': job_status,
+            'job_approval': job_approval,
+            'worker_approval': worker_approval,
+            'user_type': user_type,
+            'user_active': user_active,
+        }
+    }
+    return render(request, 'core/dashboard/admin_dashboard.html', context)
+
+
+@login_required
+def approve_job(request, job_id):
+    if not (request.user.is_staff or getattr(request.user, 'user_type', '') == 'ADMIN'):
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    job = get_object_or_404(Job, id=job_id)
+    job.is_approved = True
+    job.save()
+    messages.success(request, 'Job approved!')
+    return redirect('core:admin_dashboard')
+
+
+@login_required
+def approve_worker(request, worker_id):
+    if not (request.user.is_staff or getattr(request.user, 'user_type', '') == 'ADMIN'):
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    worker = get_object_or_404(WorkerProfile, id=worker_id)
+    worker.is_approved = True
+    worker.save()
+    messages.success(request, 'Worker approved!')
+    return redirect('core:admin_dashboard')
+
+
+@login_required
+def admin_job_action(request, job_id):
+    if request.method != 'POST':
+        return redirect('core:admin_dashboard')
+    if not (request.user.is_staff or getattr(request.user, 'user_type', '') == 'ADMIN'):
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    job = get_object_or_404(Job, id=job_id)
+    action = request.POST.get('action')
+    try:
+        if action == 'save':
+            status = request.POST.get('status')
+            priority = request.POST.get('priority')
+            is_approved = request.POST.get('is_approved') == 'on'
+            title = request.POST.get('title')
+            budget_min = request.POST.get('budget_min')
+            budget_max = request.POST.get('budget_max')
+            if status in dict(Job.JOB_STATUS):
+                job.status = status
+            if priority in dict(Job.PRIORITY_LEVELS):
+                job.priority = priority
+            job.is_approved = is_approved
+            if title:
+                job.title = title
+            if budget_min not in [None, '']:
+                try:
+                    job.budget_min = float(budget_min)
+                except ValueError:
+                    pass
+            if budget_max not in [None, '']:
+                try:
+                    job.budget_max = float(budget_max)
+                except ValueError:
+                    pass
+            job.save()
+            messages.success(request, 'Job updated.')
+        elif action == 'delete':
+            job.delete()
+            messages.success(request, 'Job deleted.')
+        elif action == 'approve':
+            job.is_approved = True
+            job.save()
+            messages.success(request, 'Job approved!')
+        else:
+            messages.error(request, 'Unknown action.')
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+    return redirect('core:admin_dashboard')
+
+
+@login_required
+def admin_worker_action(request, worker_id):
+    if request.method != 'POST':
+        return redirect('core:admin_dashboard')
+    if not (request.user.is_staff or getattr(request.user, 'user_type', '') == 'ADMIN'):
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    worker = get_object_or_404(WorkerProfile, id=worker_id)
+    action = request.POST.get('action')
+    try:
+        if action == 'save':
+            is_available = request.POST.get('is_available') == 'on'
+            background_verified = request.POST.get('background_verified') == 'on'
+            is_approved = request.POST.get('is_approved') == 'on'
+            experience_level = request.POST.get('experience_level')
+            worker.is_available = is_available
+            worker.background_verified = background_verified
+            worker.is_approved = is_approved
+            if experience_level in dict(WorkerProfile.EXPERIENCE_LEVELS):
+                worker.experience_level = experience_level
+            worker.save()
+            messages.success(request, 'Worker updated.')
+        elif action == 'delete':
+            user = worker.user
+            worker.delete()
+            messages.success(request, 'Worker profile deleted.')
+        elif action == 'approve':
+            worker.is_approved = True
+            worker.save()
+            messages.success(request, 'Worker approved!')
+        else:
+            messages.error(request, 'Unknown action.')
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+    return redirect('core:admin_dashboard')
+
+
+@login_required
+def admin_user_action(request, user_id):
+    if request.method != 'POST':
+        return redirect('core:admin_dashboard')
+    if not (request.user.is_staff or getattr(request.user, 'user_type', '') == 'ADMIN'):
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    UserModel = get_user_model()
+    user = get_object_or_404(UserModel, id=user_id)
+    action = request.POST.get('action')
+    try:
+        if action == 'save':
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            user_type = request.POST.get('user_type')
+            is_active = request.POST.get('is_active') == 'on'
+            is_staff = request.POST.get('is_staff') == 'on'
+            is_verified = request.POST.get('is_verified') == 'on'
+            has_listed_skill = request.POST.get('has_listed_skill') == 'on'
+            subscription_active = request.POST.get('subscription_active') == 'on'
+            if first_name is not None:
+                user.first_name = first_name
+            if last_name is not None:
+                user.last_name = last_name
+            if email is not None:
+                user.email = email
+            # If custom user has USER_TYPES
+            if hasattr(user, 'USER_TYPES') and user_type in dict(user.USER_TYPES):
+                user.user_type = user_type
+            user.is_active = is_active
+            user.is_staff = is_staff
+            if hasattr(user, 'is_verified'):
+                user.is_verified = is_verified
+            if hasattr(user, 'has_listed_skill'):
+                user.has_listed_skill = has_listed_skill
+            if hasattr(user, 'subscription_active'):
+                user.subscription_active = subscription_active
+            user.save()
+            messages.success(request, 'User updated.')
+        elif action == 'delete':
+            if user == request.user:
+                messages.error(request, 'You cannot delete the currently logged-in user.')
+            else:
+                user.delete()
+                messages.success(request, 'User deleted.')
+        else:
+            messages.error(request, 'Unknown action.')
+    except Exception as e:
+        messages.error(request, f'Error: {e}')
+    return redirect('core:admin_dashboard')
 
 
 def home(request):
     """Homepage with search functionality and personalized recommendations"""
     # Get recent jobs and top-rated workers
-    recent_jobs = Job.objects.filter(status='OPEN').order_by('-created_at')[:6]
+    recent_jobs = Job.objects.filter(status='OPEN', is_approved=True).order_by('-created_at')[:6]
     top_workers = WorkerProfile.objects.filter(
-        is_available=True, num_ratings__gt=0
+        is_available=True, is_approved=True, num_ratings__gt=0
     ).order_by('-rating')[:8]
     
     # Get skill categories for search
@@ -52,100 +332,72 @@ def home(request):
 
 
 def get_recommended_workers_for_client(client, limit=6):
-    """Get recommended workers for a client based on their job history and preferences"""
+    """Get recommended workers with location-aware scoring and skills."""
     try:
-        # Get client's recent job requirements
-        recent_jobs = client.jobs_posted.filter(status__in=['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED'])
+        # Consider only approved jobs from client history
+        recent_jobs = client.jobs_posted.filter(status__in=['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED'], is_approved=True)
         
+        # No job history: proximity + rating
         if not recent_jobs.exists():
-            # If no job history, return top-rated workers
-            return list(WorkerProfile.objects.filter(
-                is_available=True, 
-                num_ratings__gt=0
-            ).order_by('-rating')[:limit])
-        
-        # Get skills from recent jobs
-        required_skills = set()
-        for job in recent_jobs:
-            required_skills.update(job.required_skills.all())
-        
-        # Get workers with matching skills
-        matching_workers = list(WorkerProfile.objects.filter(
-            is_available=True,
-            skills__in=required_skills
-        ).distinct())
-        
-        # If not enough matching workers, add top-rated workers
-        if len(matching_workers) < limit:
-            top_workers = list(WorkerProfile.objects.filter(
-                is_available=True,
-                num_ratings__gt=0
-            ).exclude(id__in=[w.id for w in matching_workers])[:limit - len(matching_workers)])
-            matching_workers.extend(top_workers)
-        
-        # Sort by rating and availability, ensure we have valid objects
-        valid_workers = [w for w in matching_workers if w and hasattr(w, 'id')]
-        sorted_workers = sorted(
-            valid_workers[:limit], 
-            key=lambda w: (w.rating, w.is_available), 
-            reverse=True
-        )
-        
-        return sorted_workers
-        
-    except Exception as e:
-        # Fallback to top workers
+            client_loc = (client.location or '').lower()
+            candidates = WorkerProfile.objects.filter(is_available=True, is_approved=True)
+
+            def loc_score(worker):
+                wloc = (worker.user.location or '').lower()
+                if client_loc and wloc:
+                    if client_loc in wloc or wloc in client_loc:
+                        return 1.0
+                    s1 = set(client_loc.split())
+                    s2 = set(wloc.split())
+                    return 0.7 if s1 & s2 else 0.3
+                return 0.5
+
+            ranked = sorted(candidates, key=lambda w: (loc_score(w), w.rating, w.is_available), reverse=True)
+            return ranked[:limit]
+
+        # Use latest job as anchor for AI scoring
+        latest_job = recent_jobs.order_by('-created_at').first()
+        candidates = WorkerProfile.objects.filter(is_available=True, is_approved=True).distinct()
+        scored = []
+        for w in candidates:
+            score, _ = AIMatchingEngine.calculate_compatibility_score(latest_job, w)
+            scored.append((score, w))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [w for s, w in scored[:limit]]
+
+    except Exception:
         try:
-            return list(WorkerProfile.objects.filter(
-                is_available=True, 
-                num_ratings__gt=0
-            ).order_by('-rating')[:limit])
+            return list(WorkerProfile.objects.filter(is_available=True, is_approved=True, num_ratings__gt=0).order_by('-rating')[:limit])
         except Exception:
             return []
 
 
 def get_recommended_jobs_for_worker(worker_user, limit=6):
-    """Get recommended jobs for a worker based on their skills and preferences"""
+    """Get recommended jobs with skills and location-aware scoring."""
     try:
-        # Get worker profile
         worker_profile = getattr(worker_user, 'worker_profile', None)
         if not worker_profile:
-            return list(Job.objects.filter(status='OPEN').order_by('-created_at')[:limit])
+            return list(Job.objects.filter(status='OPEN', is_approved=True).order_by('-created_at')[:limit])
         
-        # Get worker's skills
         worker_skills = worker_profile.skills.all()
-        
-        if not worker_skills.exists():
-            # If no skills, return recent open jobs
-            return list(Job.objects.filter(status='OPEN').order_by('-created_at')[:limit])
-        
-        # Get jobs with matching skills
-        matching_jobs = list(Job.objects.filter(
-            status='OPEN',
-            required_skills__in=worker_skills
-        ).distinct())
-        
-        # If not enough matching jobs, add recent open jobs
-        if len(matching_jobs) < limit:
-            recent_jobs = list(Job.objects.filter(status='OPEN').exclude(
-                id__in=[j.id for j in matching_jobs]
-            )[:limit - len(matching_jobs)])
-            matching_jobs.extend(recent_jobs)
-        
-        # Sort by priority and creation date, ensure we have valid objects
-        valid_jobs = [j for j in matching_jobs if j and hasattr(j, 'id')]
-        sorted_jobs = sorted(
-            valid_jobs[:limit],
-            key=lambda j: (j.priority, j.created_at),
-            reverse=True
-        )
-        
-        return sorted_jobs
-        
-    except Exception as e:
-        # Fallback to recent open jobs
+        candidate_jobs = Job.objects.filter(status='OPEN', is_approved=True)
+        if worker_skills.exists():
+            candidate_jobs = candidate_jobs.filter(Q(required_skills__in=worker_skills) | Q(required_skills=None)).distinct()
+
+        scored = []
+        for j in candidate_jobs[:200]:
+            score, _ = AIMatchingEngine.calculate_compatibility_score(j, worker_profile)
+            wloc = (worker_user.location or '').lower()
+            jloc = (j.location or '').lower()
+            if wloc and jloc and (wloc in jloc or jloc in wloc):
+                score = min(1.0, score + 0.1)
+            scored.append((score, j))
+        scored.sort(key=lambda x: (x[0], x[1].created_at), reverse=True)
+        return [j for s, j in scored[:limit]]
+
+    except Exception:
         try:
-            return list(Job.objects.filter(status='OPEN').order_by('-created_at')[:limit])
+            return list(Job.objects.filter(status='OPEN', is_approved=True).order_by('-created_at')[:limit])
         except Exception:
             return []
 
@@ -156,6 +408,9 @@ def client_recommendations(request):
     if request.user.user_type != 'CLIENT':
         messages.error(request, 'Access denied.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     # Get recommended workers
     recommended_workers = get_recommended_workers_for_client(request.user, limit=20)
@@ -205,6 +460,9 @@ def worker_recommendations(request):
     if request.user.user_type != 'WORKER':
         messages.error(request, 'Access denied.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     # Get recommended jobs
     recommended_jobs = get_recommended_jobs_for_worker(request.user, limit=20)
@@ -250,12 +508,38 @@ def worker_recommendations(request):
 
 
 @login_required
+def ai_recommendations(request):
+    """Unified AI recommendations page showing jobs (for workers) and workers (for clients)."""
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
+    jobs = []
+    workers = []
+    if request.user.user_type == 'CLIENT':
+        workers = get_recommended_workers_for_client(request.user, limit=12)
+    elif request.user.user_type == 'WORKER':
+        jobs = get_recommended_jobs_for_worker(request.user, limit=12)
+    else:
+        # Admins see both top approved snapshots
+        workers = list(WorkerProfile.objects.filter(is_available=True, is_approved=True).order_by('-rating')[:12])
+        jobs = list(Job.objects.filter(status='OPEN', is_approved=True).order_by('-created_at')[:12])
+
+    context = {
+        'recommended_jobs': jobs,
+        'recommended_workers': workers,
+    }
+    return render(request, 'core/dashboard/ai_recommendations.html', context)
+
+
+@login_required
 def dashboard(request):
     """Main dashboard view - redirects to appropriate dashboard based on user type"""
     if request.user.user_type == 'CLIENT':
         return redirect('core:client_dashboard')
     elif request.user.user_type == 'WORKER':
         return redirect('core:worker_dashboard')
+    elif request.user.user_type == 'ADMIN' or request.user.is_staff:
+        return redirect('core:admin_dashboard')
     else:
         messages.error(request, 'Invalid user type')
         return redirect('core:home')
@@ -267,6 +551,9 @@ def client_dashboard(request):
     if request.user.user_type != 'CLIENT':
         messages.error(request, 'Access denied. Client dashboard only.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     # Get client's jobs
     posted_jobs = request.user.jobs_posted.all()
@@ -319,6 +606,9 @@ def worker_dashboard(request):
     if request.user.user_type != 'WORKER':
         messages.error(request, 'Access denied. Worker dashboard only.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     try:
         worker_profile = request.user.worker_profile
@@ -382,6 +672,9 @@ def client_jobs(request):
     if request.user.user_type != 'CLIENT':
         messages.error(request, 'Access denied.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     jobs = request.user.jobs_posted.all()
     status_filter = request.GET.get('status', '')
@@ -407,6 +700,9 @@ def client_draft_jobs(request):
     if request.user.user_type != 'CLIENT':
         messages.error(request, 'Access denied.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     draft_jobs = request.user.jobs_posted.filter(status='DRAFT').order_by('-created_at')
     
@@ -446,6 +742,9 @@ def post_job(request):
     if request.user.user_type != 'CLIENT':
         messages.error(request, 'Only clients can post jobs.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     if request.method == 'POST':
         form = JobForm(request.POST)
@@ -480,6 +779,9 @@ def edit_job(request, job_id):
     if request.user.user_type != 'CLIENT':
         messages.error(request, 'Access denied.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     job = get_object_or_404(Job, id=job_id, client=request.user)
     
@@ -533,7 +835,9 @@ def worker_profile(request):
     if request.method == 'POST':
         form = WorkerProfileForm(request.POST, instance=worker_profile)
         if form.is_valid():
-            form.save()
+            saved_profile = form.save()
+            request.user.has_listed_skill = saved_profile.skills.exists()
+            request.user.save(update_fields=['has_listed_skill'])
             messages.success(request, 'Profile updated successfully!')
             return redirect('core:worker_profile')
     else:
@@ -548,12 +852,12 @@ def worker_profile(request):
 
 def worker_public_profile(request, worker_id):
     """Public worker profile page"""
-    worker_profile = get_object_or_404(WorkerProfile, id=worker_id)
+    worker_profile = get_object_or_404(WorkerProfile, id=worker_id, is_approved=True)
     
     # Get worker's completed jobs
     completed_jobs = Job.objects.filter(
         assigned_worker=worker_profile,
-        status='COMPLETED'
+        status='COMPLETED', is_approved=True
     ).order_by('-completed_at')[:5]
     
     # Get recent ratings
@@ -592,8 +896,12 @@ def worker_public_profile(request, worker_id):
 
 def browse_jobs(request):
     """Browse and search jobs"""
+    if request.user.is_authenticated:
+        access_redirect = enforce_learning_access(request)
+        if access_redirect:
+            return access_redirect
     form = JobSearchForm(request.GET)
-    jobs = Job.objects.filter(status='OPEN')
+    jobs = Job.objects.filter(status='OPEN', is_approved=True)
     
     if form.is_valid():
         query = form.cleaned_data.get('query')
@@ -634,8 +942,12 @@ def browse_jobs(request):
 
 def browse_workers(request):
     """Browse and search workers"""
+    if request.user.is_authenticated:
+        access_redirect = enforce_learning_access(request)
+        if access_redirect:
+            return access_redirect
     form = WorkerSearchForm(request.GET)
-    workers = WorkerProfile.objects.filter(is_available=True)
+    workers = WorkerProfile.objects.filter(is_available=True, is_approved=True)
     
     if form.is_valid():
         query = form.cleaned_data.get('query')
@@ -678,6 +990,9 @@ def worker_applications(request):
     if request.user.user_type != 'WORKER':
         messages.error(request, 'Access denied.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     try:
         worker_profile = request.user.worker_profile
@@ -731,11 +1046,96 @@ def job_detail(request, job_id):
 
 
 @login_required
+def rate_worker(request, job_id):
+    """Client or admin rates a worker for a completed job"""
+    job = get_object_or_404(Job, id=job_id)
+    if request.user.user_type not in ['CLIENT', 'ADMIN'] and not request.user.is_staff:
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    if job.status != 'COMPLETED' or not job.assigned_worker:
+        messages.error(request, 'You can only rate completed jobs.')
+        return redirect('core:job_detail', job_id=job_id)
+    # Only the job client or admin/staff can rate
+    if request.user.user_type == 'CLIENT' and job.client != request.user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+
+    if request.method == 'POST':
+        try:
+            stars = int(request.POST.get('stars', '0'))
+            comment = request.POST.get('comment', '')
+            if stars < 1 or stars > 5:
+                raise ValueError('Stars must be 1..5')
+            # Create or update rating (client -> worker)
+            rating, created = Rating.objects.update_or_create(
+                job=job,
+                rater=request.user,
+                ratee=job.assigned_worker.user,
+                rating_type='CLIENT_TO_WORKER',
+                defaults={'stars': stars, 'comment': comment}
+            )
+            # Update worker aggregate
+            worker = job.assigned_worker
+            # Recompute average rating efficiently
+            agg = Rating.objects.filter(ratee=worker.user, rating_type='CLIENT_TO_WORKER').aggregate(
+                avg=Avg('stars'), cnt=Count('id')
+            )
+            worker.rating = float(agg['avg'] or 0.0)
+            worker.num_ratings = int(agg['cnt'] or 0)
+            worker.save()
+            messages.success(request, 'Rating submitted successfully!')
+        except Exception as e:
+            messages.error(request, f'Error submitting rating: {e}')
+    return redirect('core:job_detail', job_id=job_id)
+
+
+@login_required
+def rate_client(request, job_id):
+    """Worker rates a client for a completed job they were assigned to"""
+    job = get_object_or_404(Job, id=job_id)
+    if request.user.user_type != 'WORKER':
+        messages.error(request, 'Access denied.')
+        return redirect('core:home')
+    if job.status != 'COMPLETED' or not job.assigned_worker:
+        messages.error(request, 'You can only rate completed jobs.')
+        return redirect('core:job_detail', job_id=job_id)
+    try:
+        worker_profile = request.user.worker_profile
+    except WorkerProfile.DoesNotExist:
+        messages.error(request, 'Worker profile not found.')
+        return redirect('core:home')
+    if job.assigned_worker != worker_profile:
+        messages.error(request, 'You can only rate jobs assigned to you.')
+        return redirect('core:home')
+
+    if request.method == 'POST':
+        try:
+            stars = int(request.POST.get('stars', '0'))
+            comment = request.POST.get('comment', '')
+            if stars < 1 or stars > 5:
+                raise ValueError('Stars must be 1..5')
+            rating, created = Rating.objects.update_or_create(
+                job=job,
+                rater=request.user,
+                ratee=job.client,
+                rating_type='WORKER_TO_CLIENT',
+                defaults={'stars': stars, 'comment': comment}
+            )
+            messages.success(request, 'Client rating submitted!')
+        except Exception as e:
+            messages.error(request, f'Error submitting rating: {e}')
+    return redirect('core:job_detail', job_id=job_id)
+
+
+@login_required
 def apply_for_job(request, job_id):
     """Worker applies for a job"""
     if request.user.user_type != 'WORKER':
         messages.error(request, 'Only workers can apply for jobs.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     job = get_object_or_404(Job, id=job_id, status='OPEN')
     
@@ -785,6 +1185,9 @@ def manage_applications(request, job_id):
     if request.user.user_type != 'CLIENT':
         messages.error(request, 'Access denied.')
         return redirect('core:home')
+    access_redirect = enforce_learning_access(request)
+    if access_redirect:
+        return access_redirect
     
     job = get_object_or_404(Job, id=job_id, client=request.user)
     applications = job.applications.all()
@@ -886,7 +1289,7 @@ def search_jobs(request):
     location = request.GET.get('location', '')
     category = request.GET.get('category', '')
     
-    jobs = Job.objects.filter(status='OPEN')
+    jobs = Job.objects.filter(status='OPEN', is_approved=True)
     
     if query:
         jobs = jobs.filter(
@@ -909,7 +1312,7 @@ def search_workers(request):
     query = request.GET.get('q', '')
     skill = request.GET.get('skill', '')
     
-    workers = WorkerProfile.objects.filter(is_available=True)
+    workers = WorkerProfile.objects.filter(is_available=True, is_approved=True)
     
     if query:
         workers = workers.filter(

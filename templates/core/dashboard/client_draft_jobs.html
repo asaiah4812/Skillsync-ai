@@ -1,14 +1,13 @@
-{% extends 'layouts/main.html' %}
+{% extends 'layouts/dashboard.html' %}
 
-{% block main %}
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+{% block dashboard_content %}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Draft Jobs</h1>
-                    <p class="mt-2 text-gray-600 dark:text-gray-400">Manage your draft job postings</p>
+                    <h1 class="text-3xl font-bold text-gray-900">Draft Jobs</h1>
+                    <p class="mt-2 text-gray-600">Manage your draft job postings</p>
                 </div>
                 <div class="flex space-x-3">
                     <a href="{% url 'core:post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -17,7 +16,7 @@
                         </svg>
                         Create New Job
                     </a>
-                    <a href="{% url 'core:client_jobs' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <a href="{% url 'core:client_jobs' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         ← Back to All Jobs
                     </a>
                 </div>
@@ -28,12 +27,12 @@
         <div class="space-y-6">
             {% if draft_jobs %}
                 <!-- Draft Jobs Summary -->
-                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div class="flex items-center">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <p class="text-sm text-blue-800 dark:text-blue-200">
+                        <p class="text-sm text-blue-800">
                             You have <strong>{{ total_drafts }}</strong> draft job{{ total_drafts|pluralize }}. 
                             Draft jobs are not visible to workers until you publish them.
                         </p>
@@ -41,13 +40,13 @@
                 </div>
 
                 {% for job in draft_jobs %}
-                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg border-l-4 border-gray-400">
+                    <div class="bg-white shadow rounded-lg border-l-4 border-gray-400">
                         <div class="px-6 py-4">
                             <div class="flex justify-between items-start">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-3 mb-2">
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ job.title }}</h3>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                        <h3 class="text-lg font-medium text-gray-900">{{ job.title }}</h3>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                             Draft
                                         </span>
                                         {% if job.priority == 'URGENT' %}
@@ -57,12 +56,12 @@
                                         {% endif %}
                                     </div>
                                     
-                                    <p class="text-gray-600 dark:text-gray-400 mb-3">{{ job.description|truncatewords:30 }}</p>
+                                    <p class="text-gray-600 mb-3">{{ job.description|truncatewords:30 }}</p>
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm mb-3">
                                         <div>
-                                            <p class="text-gray-500 dark:text-gray-400">Budget</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">
+                                            <p class="text-gray-500">Budget</p>
+                                            <p class="font-medium text-gray-900">
                                                 {% if job.budget_min and job.budget_max %}
                                                     ${{ job.budget_min }} - ${{ job.budget_max }}
                                                 {% elif job.budget_min %}
@@ -75,25 +74,25 @@
                                             </p>
                                         </div>
                                         <div>
-                                            <p class="text-gray-500 dark:text-gray-400">Location</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ job.location|default:"Not specified" }}</p>
+                                            <p class="text-gray-500">Location</p>
+                                            <p class="font-medium text-gray-900">{{ job.location|default:"Not specified" }}</p>
                                         </div>
                                         <div>
-                                            <p class="text-gray-500 dark:text-gray-400">Created</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ job.created_at|date:"M d, Y" }}</p>
+                                            <p class="text-gray-500">Created</p>
+                                            <p class="font-medium text-gray-900">{{ job.created_at|date:"M d, Y" }}</p>
                                         </div>
                                         <div>
-                                            <p class="text-gray-500 dark:text-gray-400">Last Updated</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ job.updated_at|date:"M d, Y" }}</p>
+                                            <p class="text-gray-500">Last Updated</p>
+                                            <p class="font-medium text-gray-900">{{ job.updated_at|date:"M d, Y" }}</p>
                                         </div>
                                     </div>
                                     
                                     {% if job.required_skills.all %}
                                         <div class="mb-3">
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Required Skills:</p>
+                                            <p class="text-sm text-gray-500 mb-2">Required Skills:</p>
                                             <div class="flex flex-wrap gap-2">
                                                 {% for skill in job.required_skills.all %}
-                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                         {{ skill.name }}
                                                     </span>
                                                 {% endfor %}
@@ -103,8 +102,8 @@
                                     
                                     {% if job.scheduled_for %}
                                         <div class="mb-3">
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">Scheduled For:</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ job.scheduled_for|date:"M d, Y H:i" }}</p>
+                                            <p class="text-sm text-gray-500">Scheduled For:</p>
+                                            <p class="font-medium text-gray-900">{{ job.scheduled_for|date:"M d, Y H:i" }}</p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -178,8 +177,8 @@
                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No draft jobs</h3>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No draft jobs</h3>
+                    <p class="mt-1 text-sm text-gray-500">
                         You haven't created any draft jobs yet. Start by creating a new job posting.
                     </p>
                     <div class="mt-6">
@@ -196,20 +195,20 @@
 
 <!-- Publish Job Modal -->
 <div id="publishModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
-                <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mt-4">Publish Job</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <h3 class="text-lg font-medium text-gray-900 mt-4">Publish Job</h3>
+            <p class="text-sm text-gray-500 mt-2">
                 Are you sure you want to publish this job? It will become visible to workers and you can start receiving applications.
             </p>
             <div class="flex justify-center space-x-3 mt-6">
                 <button onclick="closePublishModal()" 
-                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                     Cancel
                 </button>
                 <button id="confirmPublishBtn" 
@@ -223,20 +222,20 @@
 
 <!-- Delete Draft Modal -->
 <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900">
-                <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                 </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mt-4">Delete Draft</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <h3 class="text-lg font-medium text-gray-900 mt-4">Delete Draft</h3>
+            <p class="text-sm text-gray-500 mt-2">
                 Are you sure you want to delete this draft? This action cannot be undone.
             </p>
             <div class="flex justify-center space-x-3 mt-6">
                 <button onclick="closeDeleteModal()" 
-                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                     Cancel
                 </button>
                 <button id="confirmDeleteBtn" 

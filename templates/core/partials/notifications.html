@@ -1,41 +1,29 @@
 {% for notification in notifications %}
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-3 border-l-4 
-    {% if notification.notification_type == 'APPLICATION_RECEIVED' %}border-blue-500
-    {% elif notification.notification_type == 'APPLICATION_ACCEPTED' %}border-green-500
-    {% elif notification.notification_type == 'APPLICATION_REJECTED' %}border-red-500
-    {% else %}border-gray-500{% endif %}">
+<div class="bg-white rounded-lg shadow-sm p-4 mb-3 border-l-4 {% if notification.notification_type == 'APPLICATION_RECEIVED' %}border-blue-500 {% elif notification.notification_type == 'APPLICATION_ACCEPTED' %}border-green-500 {% elif notification.notification_type == 'APPLICATION_REJECTED' %}border-red-500 {% else %}border-gray-500{% endif %}">
     
     <div class="flex items-start space-x-3">
         <div class="flex-shrink-0">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center
-                {% if notification.notification_type == 'APPLICATION_RECEIVED' %}bg-blue-100 dark:bg-blue-900
-                {% elif notification.notification_type == 'APPLICATION_ACCEPTED' %}bg-green-100 dark:bg-green-900
-                {% elif notification.notification_type == 'APPLICATION_REJECTED' %}bg-red-100 dark:bg-red-900
-                {% else %}bg-gray-100 dark:bg-gray-700{% endif %}">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center {% if notification.notification_type == 'APPLICATION_RECEIVED' %}bg-blue-100 {% elif notification.notification_type == 'APPLICATION_ACCEPTED' %}bg-green-100 {% elif notification.notification_type == 'APPLICATION_REJECTED' %}bg-red-100 {% else %}bg-gray-100 endif %}">
                 
-                <i class="fas 
-                    {% if notification.notification_type == 'APPLICATION_RECEIVED' %}fa-envelope text-blue-600 dark:text-blue-400
-                    {% elif notification.notification_type == 'APPLICATION_ACCEPTED' %}fa-check text-green-600 dark:text-green-400
-                    {% elif notification.notification_type == 'APPLICATION_REJECTED' %}fa-times text-red-600 dark:text-red-400
-                    {% else %}fa-bell text-gray-600 dark:text-gray-400{% endif %}">
+                <i class="fas {% if notification.notification_type == 'APPLICATION_RECEIVED' %}fa-envelope text-blue-600 {% elif notification.notification_type == 'APPLICATION_ACCEPTED' %}fa-check text-green-600 {% elif notification.notification_type == 'APPLICATION_REJECTED' %}fa-times text-red-600 {% else %}fa-bell text-gray-600 endif %}">
                 </i>
             </div>
         </div>
         
         <div class="flex-1 min-w-0">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+            <h4 class="text-sm font-medium text-gray-900 mb-1">
                 {{ notification.title }}
             </h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <p class="text-sm text-gray-600 mb-2">
                 {{ notification.message }}
             </p>
             <div class="flex items-center justify-between">
-                <span class="text-xs text-gray-500 dark:text-gray-500">
+                <span class="text-xs text-gray-500">
                     {{ notification.created_at|timesince }} ago
                 </span>
                 {% if notification.related_job %}
                 <a href="{% url 'core:job_detail' notification.related_job.id %}" 
-                   class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+                   class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                     View Job
                 </a>
                 {% endif %}
@@ -45,10 +33,10 @@
 </div>
 {% empty %}
 <div class="text-center py-8">
-    <div class="text-gray-400 dark:text-gray-500 mb-4">
+    <div class="text-gray-400 mb-4">
         <i class="fas fa-bell text-4xl"></i>
     </div>
-    <p class="text-gray-600 dark:text-gray-400">No notifications yet.</p>
-    <p class="text-gray-500 dark:text-gray-500 text-sm">You'll see updates about your jobs and applications here.</p>
+    <p class="text-gray-600">No notifications yet.</p>
+    <p class="text-gray-500 text-sm">You'll see updates about your jobs and applications here.</p>
 </div>
 {% endfor %}

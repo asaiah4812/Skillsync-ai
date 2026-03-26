@@ -1,13 +1,8 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import reverse
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView, PasswordResetDoneView
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str
-from django.contrib.auth import get_user_model
 from .forms import UserRegistrationForm, UserLoginForm, CustomPasswordResetForm, CustomSetPasswordForm
 
 
@@ -19,28 +14,14 @@ def login_view(request):
     if request.method == 'POST':
         form = UserLoginForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            
-            # Try to authenticate with username first, then email
-            user = authenticate(username=username, password=password)
-            if user is None:
-                # Try with email
-                try:
-                    from .models import User
-                    user_obj = User.objects.get(email=username)
-                    user = authenticate(username=user_obj.username, password=password)
-                except User.DoesNotExist:
-                    pass
-            
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Welcome back, {user.get_full_name()}!')
-                # Redirect to next parameter or dashboard
-                next_url = request.GET.get('next', 'core:home')
+            user = form.get_user()
+            login(request, user)
+            display = user.get_full_name() or user.username
+            messages.success(request, f'Welcome back, {display}!')
+            next_url = request.GET.get('next')
+            if next_url:
                 return redirect(next_url)
-            else:
-                messages.error(request, 'Invalid username/email or password.')
+            return redirect('core:home')
     else:
         form = UserLoginForm()
     
@@ -57,7 +38,10 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, f'Welcome to SkillSync, {user.get_full_name()}! Your account has been created successfully.')
+            messages.success(
+                request,
+                f'Welcome to SkillSwap, {user.username}! Your FUK student account is ready.'
+            )
             return redirect('core:home')
         else:
             messages.error(request, 'Please correct the errors below.')

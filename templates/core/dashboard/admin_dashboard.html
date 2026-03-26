@@ -1,0 +1,347 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="space-y-8">
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-sm text-gray-500">Total Jobs</div>
+            <div class="mt-2 text-2xl font-bold text-gray-900">{{ kpi.total_jobs }}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-sm text-gray-500">Pending Jobs</div>
+            <div class="mt-2 text-2xl font-bold text-yellow-600">{{ kpi.pending_jobs }}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-sm text-gray-500">Total Workers</div>
+            <div class="mt-2 text-2xl font-bold text-gray-900">{{ kpi.total_workers }}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-sm text-gray-500">Completed Jobs</div>
+            <div class="mt-2 text-2xl font-bold text-green-600">{{ kpi.completed_jobs }}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-sm text-gray-500">Users (Active)</div>
+            <div class="mt-2 text-2xl font-bold text-gray-900">{{ kpi.active_users }}/{{ kpi.total_users }}</div>
+        </div>
+    </div>
+
+    <!-- Tabs: Jobs / Workers / Users (vanilla JS in static/js/main.js) -->
+    <div>
+        <div class="flex items-center justify-between">
+            <div class="inline-flex rounded-lg bg-gray-100 p-1" role="tablist">
+                <button type="button" data-tab-toggle="jobs" class="px-4 py-2 rounded-md text-sm text-gray-600 ss-tab-active">Jobs</button>
+                <button type="button" data-tab-toggle="workers" class="px-4 py-2 rounded-md text-sm text-gray-600">Workers</button>
+                <button type="button" data-tab-toggle="users" class="px-4 py-2 rounded-md text-sm text-gray-600">Users</button>
+            </div>
+        </div>
+
+        <!-- Jobs Table -->
+        <div data-tab-panel="jobs" class="mt-6">
+            <!-- Filters -->
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                <input type="text" name="jq" value="{{ filters.job_query }}" placeholder="Search jobs..." class="px-3 py-2 rounded-md border border-gray-300">
+                <select name="status" class="px-3 py-2 rounded-md border border-gray-300">
+                    <option value="">All Status</option>
+                    {% for val,label in jobs.paginator.object_list.model.JOB_STATUS %}
+                        <option value="{{ val }}" {% if filters.job_status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="japproved" class="px-3 py-2 rounded-md border border-gray-300">
+                    <option value="">All</option>
+                    <option value="approved" {% if filters.job_approval == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="pending" {% if filters.job_approval == 'pending' %}selected{% endif %}>Pending</option>
+                </select>
+                <button class="px-4 py-2 rounded-md bg-blue-600 text-white">Filter</button>
+            </form>
+
+            <div class="overflow-x-auto bg-white border border-gray-200 rounded-xl">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Title</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Client</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Priority</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Approved</th>
+                            <th class="px-4 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for job in jobs %}
+                        <tr>
+                            <td class="px-4 py-3 text-sm text-gray-900">
+                                <a href="{% url 'core:job_detail' job.id %}" class="hover:underline">{{ job.title }}</a>
+                                <div class="text-xs text-gray-500">{{ job.created_at|date:"M d, Y" }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-700">{{ job.client.get_full_name|default:job.client.username }}</td>
+                            <td class="px-4 py-3">
+                                <form method="post" action="{% url 'core:admin_job_action' job.id %}" class="inline-flex items-center space-x-2">{% csrf_token %}
+                                    <input type="hidden" name="action" value="save">
+                                    <select name="status" class="text-sm px-2 py-1 rounded border border-gray-300">
+                                        {% for val,label in job.JOB_STATUS %}
+                                            <option value="{{ val }}" {% if job.status == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <select name="priority" class="text-sm px-2 py-1 rounded border border-gray-300">
+                                        {% for val,label in job.PRIORITY_LEVELS %}
+                                            <option value="{{ val }}" {% if job.priority == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="is_approved" {% if job.is_approved %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Approved</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                                    <button class="px-3 py-1 rounded-md bg-blue-600 text-white text-sm">Save</button>
+                                </form>
+                                <form method="post" action="{% url 'core:admin_job_action' job.id %}" class="inline">{% csrf_token %}
+                                    <input type="hidden" name="action" value="approve">
+                                    <button class="px-3 py-1 rounded-md bg-green-600 text-white text-sm">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'core:admin_job_action' job.id %}" class="inline" onsubmit="return confirm('Delete this job?')">{% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <button class="px-3 py-1 rounded-md bg-red-600 text-white text-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">No jobs found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if jobs.has_other_pages %}
+            <div class="mt-4 flex justify-end space-x-2">
+                {% if jobs.has_previous %}
+                    <a href="?jpage={{ jobs.previous_page_number }}" class="px-3 py-1 rounded border text-sm">Previous</a>
+                {% endif %}
+                <span class="px-3 py-1 text-sm text-gray-500">Page {{ jobs.number }} of {{ jobs.paginator.num_pages }}</span>
+                {% if jobs.has_next %}
+                    <a href="?jpage={{ jobs.next_page_number }}" class="px-3 py-1 rounded border text-sm">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Workers Table -->
+        <div data-tab-panel="workers" class="mt-6 hidden">
+            <!-- Filters -->
+            <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <input type="text" name="wq" value="{{ filters.worker_query }}" placeholder="Search workers..." class="px-3 py-2 rounded-md border border-gray-300">
+                <select name="wapproved" class="px-3 py-2 rounded-md border border-gray-300">
+                    <option value="">All</option>
+                    <option value="approved" {% if filters.worker_approval == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="pending" {% if filters.worker_approval == 'pending' %}selected{% endif %}>Pending</option>
+                </select>
+                <button class="px-4 py-2 rounded-md bg-blue-600 text-white">Filter</button>
+            </form>
+
+            <div class="overflow-x-auto bg-white border border-gray-200 rounded-xl">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Worker</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Experience</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Verified</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Approved</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Available</th>
+                            <th class="px-4 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for w in workers %}
+                        <tr>
+                            <td class="px-4 py-3 text-sm text-gray-900">
+                                {{ w.user.get_full_name|default:w.user.username }}
+                                <div class="text-xs text-gray-500">Rating: {{ w.rating|floatformat:1 }} ({{ w.num_ratings }})</div>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-700">{{ w.get_experience_level_display }}</td>
+                            <td class="px-4 py-3">
+                                <form method="post" action="{% url 'core:admin_worker_action' w.id %}" class="inline-flex items-center space-x-2">{% csrf_token %}
+                                    <input type="hidden" name="action" value="save">
+                                    <select name="experience_level" class="text-sm px-2 py-1 rounded border border-gray-300">
+                                        {% for val,label in w.EXPERIENCE_LEVELS %}
+                                            <option value="{{ val }}" {% if w.experience_level == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="background_verified" {% if w.background_verified %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>BG Checked</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="is_approved" {% if w.is_approved %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Approved</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="is_available" {% if w.is_available %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Available</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                                    <button class="px-3 py-1 rounded-md bg-blue-600 text-white text-sm">Save</button>
+                                </form>
+                                <form method="post" action="{% url 'core:admin_worker_action' w.id %}" class="inline">{% csrf_token %}
+                                    <input type="hidden" name="action" value="approve">
+                                    <button class="px-3 py-1 rounded-md bg-green-600 text-white text-sm">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'core:admin_worker_action' w.id %}" class="inline" onsubmit="return confirm('Delete this worker profile?')">{% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <button class="px-3 py-1 rounded-md bg-red-600 text-white text-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">No workers found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if workers.has_other_pages %}
+            <div class="mt-4 flex justify-end space-x-2">
+                {% if workers.has_previous %}
+                    <a href="?wpage={{ workers.previous_page_number }}" class="px-3 py-1 rounded border text-sm">Previous</a>
+                {% endif %}
+                <span class="px-3 py-1 text-sm text-gray-500">Page {{ workers.number }} of {{ workers.paginator.num_pages }}</span>
+                {% if workers.has_next %}
+                    <a href="?wpage={{ workers.next_page_number }}" class="px-3 py-1 rounded border text-sm">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Users Table -->
+        <div data-tab-panel="users" class="mt-6 hidden">
+            <!-- Filters -->
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                <input type="text" name="uq" value="{{ filters.user_query }}" placeholder="Search users..." class="px-3 py-2 rounded-md border border-gray-300">
+                <select name="utype" class="px-3 py-2 rounded-md border border-gray-300">
+                    <option value="">All Types</option>
+                    {% if users.paginator.object_list.model.USER_TYPES %}
+                        {% for val,label in users.paginator.object_list.model.USER_TYPES %}
+                            <option value="{{ val }}" {% if filters.user_type == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <select name="uactive" class="px-3 py-2 rounded-md border border-gray-300">
+                    <option value="">All</option>
+                    <option value="active" {% if filters.user_active == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if filters.user_active == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+                <button class="px-4 py-2 rounded-md bg-blue-600 text-white">Filter</button>
+            </form>
+
+            <div class="overflow-x-auto bg-white border border-gray-200 rounded-xl">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">User</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Email</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Verified</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Skill listed</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Subscription</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Staff</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Active</th>
+                            <th class="px-4 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for u in users %}
+                        <tr>
+                            <td class="px-4 py-3 text-sm text-gray-900">
+                                <form method="post" action="{% url 'core:admin_user_action' u.id %}" class="space-y-1">{% csrf_token %}
+                                    <input type="hidden" name="action" value="save">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input name="first_name" value="{{ u.first_name }}" placeholder="First" class="px-2 py-1 rounded border text-sm">
+                                        <input name="last_name" value="{{ u.last_name }}" placeholder="Last" class="px-2 py-1 rounded border text-sm">
+                                    </div>
+                                    <div class="text-xs text-gray-500">{{ u.username }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-700">
+                                    <input name="email" value="{{ u.email }}" class="w-full px-2 py-1 rounded border text-sm">
+                            </td>
+                            <td class="px-4 py-3">
+                                    <select name="user_type" class="text-sm px-2 py-1 rounded border border-gray-300">
+                                        {% for val,label in u.USER_TYPES %}
+                                            <option value="{{ val }}" {% if u.user_type == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="is_verified" {% if u.is_verified %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Email / FUK</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="has_listed_skill" {% if u.has_listed_skill %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Has skill</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="subscription_active" {% if u.subscription_active %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Active</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="is_staff" {% if u.is_staff %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Staff</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3">
+                                    <label class="inline-flex items-center space-x-2 text-sm text-gray-700">
+                                        <input type="checkbox" name="is_active" {% if u.is_active %}checked{% endif %} class="rounded border-gray-300">
+                                        <span>Active</span>
+                                    </label>
+                            </td>
+                            <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                                    <button class="px-3 py-1 rounded-md bg-blue-600 text-white text-sm">Save</button>
+                                </form>
+                                <form method="post" action="{% url 'core:admin_user_action' u.id %}" class="inline" onsubmit="return confirm('Delete this user? This cannot be undone.')">{% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <button class="px-3 py-1 rounded-md bg-red-600 text-white text-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9" class="px-4 py-6 text-center text-sm text-gray-500">No users found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if users.has_other_pages %}
+            <div class="mt-4 flex justify-end space-x-2">
+                {% if users.has_previous %}
+                    <a href="?upage={{ users.previous_page_number }}" class="px-3 py-1 rounded border text-sm">Previous</a>
+                {% endif %}
+                <span class="px-3 py-1 text-sm text-gray-500">Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+                {% if users.has_next %}
+                    <a href="?upage={{ users.next_page_number }}" class="px-3 py-1 rounded border text-sm">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

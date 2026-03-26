@@ -1,147 +1,93 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
-<!-- Navigation -->
-<nav class="bg-white dark:bg-gray-800 shadow-lg" x-data="{ mobileMenuOpen: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <a href="{% url 'core:home' %}" class="text-2xl font-bold text-primary">SkillSync</a>
-                </div>
-                <div class="hidden md:ml-6 md:flex md:space-x-8">
-                    <a href="{% url 'core:browse_workers' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Find Workers</a>
-                    <a href="{% url 'core:browse_jobs' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Browse Jobs</a>
-                    {% if user.is_authenticated and user.user_type == 'CLIENT' %}
-                        <a href="{% url 'core:post_job' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Post a Job</a>
-                    {% endif %}
-                    <a href="#" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">How it Works</a>
-                </div>
-            </div>
-            
-            <div class="flex items-center space-x-4">
-                <!-- Dark Mode Toggle -->
-                <button @click="darkMode = !darkMode" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-                    </svg>
-                    <svg x-show="darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                    </svg>
-                </button>
-                
+<div class="ss-main">
+    <header class="ss-header">
+        <div class="ss-container ss-header__inner">
+            <a href="{% url 'core:home' %}" class="ss-brand">SkillSwap FUK</a>
+
+            <nav class="ss-nav" aria-label="Main">
+                <a href="{% url 'core:browse_workers' %}">Find skill partners</a>
+                <a href="{% url 'core:browse_jobs' %}">Browse requests</a>
+                {% if user.is_authenticated and user.user_type == 'CLIENT' %}
+                    <a href="{% url 'core:post_job' %}">Post a request</a>
+                {% endif %}
+            </nav>
+
+            <div class="ss-header__actions">
                 {% if user.is_authenticated %}
-                    <!-- Notifications -->
-                    <div class="relative" x-data="{ notificationOpen: false }">
-                        <button @click="notificationOpen = !notificationOpen" class="relative p-2 text-gray-600 dark:text-gray-300 hover:text-primary">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.061L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"></path>
-                            </svg>
-                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
-                        </button>
-                        
-                        <div x-show="notificationOpen" @click.away="notificationOpen = false" x-transition class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-                            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                            </div>
-                            <div class="max-h-64 overflow-y-auto">
-                                <div class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <p class="text-sm text-gray-900 dark:text-white">New job application received</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">2 minutes ago</p>
-                                </div>
-                                <div class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <p class="text-sm text-gray-900 dark:text-white">Message from John Doe</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">1 hour ago</p>
-                                </div>
-                                <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <p class="text-sm text-gray-900 dark:text-white">Job completed successfully</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">3 hours ago</p>
-                                </div>
-                            </div>
+                    <div class="ss-dropdown">
+                        <button type="button" class="ss-btn ss-btn--outline ss-btn--sm" data-dropdown-toggle="nav-notifications" aria-expanded="false">Notifications</button>
+                        <div id="nav-notifications" class="ss-dropdown-menu ss-dropdown-menu--wide" role="menu">
+                            <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--color-border);font-weight:600;">Notifications</div>
+                            <div style="padding:0.75rem 1rem;font-size:0.875rem;color:var(--color-muted);">No new notifications.</div>
                         </div>
                     </div>
-                    
-                    <!-- User Menu -->
-                    <div class="relative" x-data="{ userMenuOpen: false }">
-                        <button @click="userMenuOpen = !userMenuOpen" class="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-primary">
+
+                    <div class="ss-dropdown">
+                        <button type="button" class="ss-btn ss-btn--outline ss-btn--sm" data-dropdown-toggle="nav-user-menu">
                             {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="w-8 h-8 rounded-full">
+                                <img src="{{ user.profile_picture.url }}" alt="" width="24" height="24" style="border-radius:999px;vertical-align:middle;">
                             {% else %}
-                                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                                </div>
+                                <span>{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
                             {% endif %}
-                            <span class="hidden md:block">{{ user.get_full_name }}</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
                         </button>
-                        
-                        <div x-show="userMenuOpen" @click.away="userMenuOpen = false" x-transition class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-                            <div class="py-1">
-                                <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</a>
-                                <a href="{% url 'core:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Dashboard</a>
-                                {% if user.user_type == 'CLIENT' %}
-                                    <a href="{% url 'core:client_jobs' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">My Jobs</a>
-                                    <a href="{% url 'core:post_job' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Post Job</a>
-                                {% elif user.user_type == 'WORKER' %}
-                                    <a href="{% url 'core:worker_applications' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">My Applications</a>
-                                    <a href="{% url 'core:worker_profile' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Worker Profile</a>
-                                {% endif %}
-                                <hr class="my-1 border-gray-200 dark:border-gray-600">
-                                <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">Sign out</a>
-                            </div>
+                        <div id="nav-user-menu" class="ss-dropdown-menu" role="menu">
+                            <a href="{% url 'accounts:profile' %}">Profile</a>
+                            <a href="{% url 'core:dashboard' %}">Dashboard</a>
+                            {% if user.user_type == 'CLIENT' %}
+                                <a href="{% url 'core:client_jobs' %}">My jobs</a>
+                                <a href="{% url 'core:post_job' %}">Post request</a>
+                            {% elif user.user_type == 'WORKER' %}
+                                <a href="{% url 'core:worker_applications' %}">Applications</a>
+                                <a href="{% url 'core:worker_profile' %}">Worker profile</a>
+                            {% endif %}
+                            <hr>
+                            <a href="{% url 'accounts:logout' %}" style="color:var(--color-danger);">Sign out</a>
                         </div>
                     </div>
                 {% else %}
-                    <div class="hidden md:flex items-center space-x-4">
-                        <a href="{% url 'accounts:login' %}" class="text-gray-900 dark:text-white hover:text-primary px-3 py-2 text-sm font-medium">Login</a>
-                        <a href="{% url 'accounts:register' %}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">Sign Up</a>
-                    </div>
+                    <a href="{% url 'accounts:login' %}" class="ss-btn ss-btn--outline ss-btn--sm">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="ss-btn ss-btn--primary ss-btn--sm">Create account</a>
                 {% endif %}
-                
-                <!-- Mobile menu button -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 rounded-md text-gray-600 dark:text-gray-300">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
+
+                <button type="button" class="ss-nav-toggle" data-nav-toggle="mobile-nav" aria-label="Open menu">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>
         </div>
-    </div>
-    
-    <!-- Mobile menu -->
-    <div x-show="mobileMenuOpen" x-transition class="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="{% url 'core:browse_workers' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Find Workers</a>
-            <a href="{% url 'core:browse_jobs' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Browse Jobs</a>
+
+        <div id="mobile-nav" class="ss-nav-mobile ss-container">
+            <a href="{% url 'core:browse_workers' %}">Find skill partners</a>
+            <a href="{% url 'core:browse_jobs' %}">Browse requests</a>
             {% if user.is_authenticated and user.user_type == 'CLIENT' %}
-                <a href="{% url 'core:post_job' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Post a Job</a>
+                <a href="{% url 'core:post_job' %}">Post a request</a>
             {% endif %}
-            <a href="#" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">How it Works</a>
             {% if user.is_authenticated %}
-                <a href="{% url 'accounts:profile' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Profile</a>
-                <a href="{% url 'accounts:logout' %}" class="block px-3 py-2 text-red-600 hover:text-red-700">Sign out</a>
+                <a href="{% url 'accounts:profile' %}">Profile</a>
+                <a href="{% url 'core:dashboard' %}">Dashboard</a>
+                <a href="{% url 'accounts:logout' %}">Sign out</a>
             {% else %}
-                <a href="{% url 'accounts:login' %}" class="block px-3 py-2 text-gray-900 dark:text-white hover:text-primary">Login</a>
-                <a href="{% url 'accounts:register' %}" class="block px-3 py-2 bg-primary text-white rounded-lg">Sign Up</a>
+                <a href="{% url 'accounts:login' %}">Login</a>
+                <a href="{% url 'accounts:register' %}">Create account</a>
             {% endif %}
         </div>
-    </div>
-</nav>
+    </header>
 
-<!-- Messages -->
-{% if messages %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+    {% if messages %}
+    <div class="ss-messages ss-container">
         {% for message in messages %}
-            <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %} mb-4">
+            <div class="ss-alert {% if message.tags == 'error' %}ss-alert--error{% else %}ss-alert--success{% endif %}">
                 {{ message }}
             </div>
         {% endfor %}
     </div>
-{% endif %}
+    {% endif %}
 
-{% block main %}
-{% endblock %}
-<c-footer />
+    {% block main %}
+    {% endblock %}
+
+    {% include 'partials/footer.html' %}
+</div>
 {% endblock %}
