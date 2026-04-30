@@ -93,6 +93,19 @@ class WorkerSkill(models.Model):
         return f"{self.worker.user.get_full_name()} - {self.skill.name} ({self.proficiency})"
 
 
+class LearningInterest(models.Model):
+    """Skills a student wants to learn."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='learning_interests')
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name='interested_learners')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'skill']
+
+    def __str__(self):
+        return f"{self.user.username} wants to learn {self.skill.name}"
+
+
 class Job(models.Model):
     """Job postings by clients"""
     JOB_STATUS = [

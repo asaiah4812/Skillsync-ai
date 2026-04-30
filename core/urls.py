@@ -44,6 +44,7 @@ urlpatterns = [
     path('jobs/', views.browse_jobs, name='browse_jobs'),
     path('workers/', views.browse_workers, name='browse_workers'),
     path('worker/<int:worker_id>/', views.worker_public_profile, name='worker_public_profile'),
+    path('worker/<int:worker_id>/request/', views.request_skill_partner, name='request_skill_partner'),
     
     # Search functionality
     path('search/jobs/', views.search_jobs, name='search_jobs'),

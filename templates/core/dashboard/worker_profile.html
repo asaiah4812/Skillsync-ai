@@ -7,10 +7,10 @@
         <div class="mb-8">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Worker Profile</h1>
-                    <p class="mt-2 text-gray-600">Manage your profile and showcase your skills</p>
+                    <h1 class="text-3xl font-bold text-gray-900">My Skills Profile</h1>
+                    <p class="mt-2 text-gray-600">Add your skills and what you want to learn</p>
                 </div>
-                <a href="{% url 'core:worker_dashboard' %}" class="text-blue-600 hover:text-blue-500">
+                <a href="{% url 'core:dashboard' %}" class="text-blue-600 hover:text-blue-500">
                     ← Back to Dashboard
                 </a>
             </div>
@@ -19,7 +19,7 @@
         {% if messages %}
             <div class="mb-6">
                 {% for message in messages %}
-                    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+                    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200 {% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -62,24 +62,10 @@
                                 {% endif %}
                             </div>
 
-                            <!-- Hourly Rate -->
-                            <div>
-                                <label for="{{ form.hourly_rate.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Hourly Rate ($)
-                                </label>
-                                {{ form.hourly_rate }}
-                                {% if form.hourly_rate.errors %}
-                                    <p class="mt-1 text-sm text-red-600">{{ form.hourly_rate.errors.0 }}</p>
-                                {% endif %}
-                                <p class="mt-1 text-sm text-gray-500">
-                                    Your standard hourly rate for jobs.
-                                </p>
-                            </div>
-
-                            <!-- Skills -->
+                            <!-- My Skills (I can teach/help with) -->
                             <div>
                                 <label for="{{ form.skills.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Skills
+                                    My Skills
                                 </label>
                                 {{ form.skills }}
                                 {% if form.skills.errors %}
@@ -90,17 +76,31 @@
                                 </p>
                             </div>
 
+                            <!-- Skills to learn -->
+                            <div>
+                                <label for="{{ form.skills_to_learn.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Skills I Want to Learn
+                                </label>
+                                {{ form.skills_to_learn }}
+                                {% if form.skills_to_learn.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.skills_to_learn.errors.0 }}</p>
+                                {% endif %}
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Select skills you want to learn. Hold Ctrl/Cmd to select multiple skills.
+                                </p>
+                            </div>
+
                             <!-- Availability -->
                             <div class="flex items-center">
                                 {{ form.is_available }}
                                 <label for="{{ form.is_available.id_for_label }}" class="ml-2 text-sm text-gray-700">
-                                    Available for new jobs
+                                    Available for new connections
                                 </label>
                                 {% if form.is_available.errors %}
                                     <p class="mt-1 text-sm text-red-600">{{ form.is_available.errors.0 }}</p>
                                 {% endif %}
                             </div>
-
+                            
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-6">
                                 <button type="submit" 
@@ -141,7 +141,7 @@
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">Jobs Completed</p>
+                                    <p class="text-sm font-medium text-gray-500">Requests Completed</p>
                                     <p class="text-lg font-medium text-gray-900">{{ worker_profile.total_jobs_completed }}</p>
                                 </div>
                             </div>
@@ -181,11 +181,8 @@
                         <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
                     </div>
                     <div class="p-6 space-y-3">
-                        <a href="{% url 'core:home' %}" class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                            Browse Jobs
-                        </a>
-                        <a href="{% url 'core:worker_applications' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
-                            My Applications
+                        <a href="{% url 'core:browse_workers' %}" class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Find Skill Partners
                         </a>
                         <a href="{% url 'accounts:profile' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
                             Account Settings
@@ -196,23 +193,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    /* Custom styling for select multiple */
-    select[multiple] {
-        min-height: 120px;
-    }
-    
-    /* Dark mode support for form fields */
-    .dark input, .dark textarea, .dark select {
-        background-color: rgb(55 65 81);
-        border-color: rgb(75 85 99);
-        color: white;
-    }
-    
-    .dark input:focus, .dark textarea:focus, .dark select:focus {
-        border-color: rgb(59 130 246);
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    }
-</style>
 {% endblock %}

@@ -1,10 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Job, JobApplication, WorkerProfile, Skill, SkillCategory
+from .models import Job, JobApplication, WorkerProfile, Skill, SkillCategory, LearningInterest
 
 
 class JobForm(forms.ModelForm):
-    """Form for creating and editing jobs"""
+    """Form for creating and editing skill requests"""
     class Meta:
         model = Job
         fields = [
@@ -15,12 +15,12 @@ class JobForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'ss-input w-full',
-                'placeholder': 'Enter job title'
+                'placeholder': 'Enter request title'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'ss-input w-full',
                 'rows': 4,
-                'placeholder': 'Describe the job requirements and details'
+                'placeholder': 'Describe what you need help learning/doing'
             }),
             'location': forms.TextInput(attrs={
                 'class': 'ss-input w-full',
@@ -62,7 +62,7 @@ class JobForm(forms.ModelForm):
 
 
 class JobApplicationForm(forms.ModelForm):
-    """Form for workers to apply for jobs"""
+    """Form for students to respond to requests"""
     class Meta:
         model = JobApplication
         fields = ['cover_letter', 'proposed_rate', 'estimated_completion']
@@ -70,7 +70,7 @@ class JobApplicationForm(forms.ModelForm):
             'cover_letter': forms.Textarea(attrs={
                 'class': 'ss-input w-full',
                 'rows': 4,
-                'placeholder': 'Explain why you\'re the best fit for this job...'
+                'placeholder': 'Explain how you can help with this request...'
             }),
             'proposed_rate': forms.NumberInput(attrs={
                 'class': 'ss-input w-full',
@@ -85,6 +85,15 @@ class JobApplicationForm(forms.ModelForm):
 
 class WorkerProfileForm(forms.ModelForm):
     """Form for workers to update their profile"""
+    skills_to_learn = forms.ModelMultipleChoiceField(
+        queryset=Skill.objects.filter(is_active=True),
+        required=False,
+        widget=forms.SelectMultiple(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+        }),
+        help_text="Select skills you want to learn. Hold Ctrl/Cmd to select multiple.",
+    )
+
     class Meta:
         model = WorkerProfile
         fields = [
@@ -115,15 +124,32 @@ class WorkerProfileForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filter active skills only
         self.fields['skills'].queryset = Skill.objects.filter(is_active=True)
+        if self.instance and getattr(self.instance, 'user_id', None):
+            self.fields['skills_to_learn'].initial = LearningInterest.objects.filter(
+                user_id=self.instance.user_id
+            ).values_list('skill_id', flat=True)
+
+    def save(self, commit=True):
+        profile = super().save(commit=commit)
+        # Update learning interests for this user
+        skill_ids = []
+        if self.cleaned_data.get('skills_to_learn') is not None:
+            skill_ids = list(self.cleaned_data['skills_to_learn'].values_list('id', flat=True))
+        LearningInterest.objects.filter(user=profile.user).exclude(skill_id__in=skill_ids).delete()
+        existing = set(LearningInterest.objects.filter(user=profile.user).values_list('skill_id', flat=True))
+        to_create = [LearningInterest(user=profile.user, skill_id=sid) for sid in skill_ids if sid not in existing]
+        if to_create:
+            LearningInterest.objects.bulk_create(to_create)
+        return profile
 
 
 class JobSearchForm(forms.Form):
-    """Form for searching jobs"""
+    """Form for searching skill requests"""
     query = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'placeholder': 'Search jobs...'
+            'placeholder': 'Search requests...'
         })
     )
     category = forms.ModelChoiceField(

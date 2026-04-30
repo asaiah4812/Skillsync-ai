@@ -821,10 +821,7 @@ def edit_job(request, job_id):
 
 @login_required
 def worker_profile(request):
-    """Worker profile management"""
-    if request.user.user_type != 'WORKER':
-        messages.error(request, 'Access denied.')
-        return redirect('core:home')
+    """Skills profile management (what you can teach + what you want to learn)."""
     
     try:
         worker_profile = request.user.worker_profile
@@ -838,7 +835,7 @@ def worker_profile(request):
             saved_profile = form.save()
             request.user.has_listed_skill = saved_profile.skills.exists()
             request.user.save(update_fields=['has_listed_skill'])
-            messages.success(request, 'Profile updated successfully!')
+            messages.success(request, 'Skills updated successfully!')
             return redirect('core:worker_profile')
     else:
         form = WorkerProfileForm(instance=worker_profile)
@@ -852,7 +849,7 @@ def worker_profile(request):
 
 def worker_public_profile(request, worker_id):
     """Public worker profile page"""
-    worker_profile = get_object_or_404(WorkerProfile, id=worker_id, is_approved=True)
+    worker_profile = get_object_or_404(WorkerProfile, id=worker_id)
     
     # Get worker's completed jobs
     completed_jobs = Job.objects.filter(
@@ -878,7 +875,7 @@ def worker_public_profile(request, worker_id):
     total_jobs = worker_profile.total_jobs_completed
     
     # Check if current user can contact this worker
-    can_contact = request.user.is_authenticated and request.user.user_type == 'CLIENT'
+    can_contact = request.user.is_authenticated
     
     context = {
         'worker_profile': worker_profile,
@@ -892,6 +889,34 @@ def worker_public_profile(request, worker_id):
         'can_contact': can_contact,
     }
     return render(request, 'core/worker_public_profile.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def request_skill_partner(request, worker_id):
+    """Send a skill-partner request (creates a message + notification)."""
+    worker_profile = get_object_or_404(WorkerProfile, id=worker_id)
+    if worker_profile.user_id == request.user.id:
+        messages.error(request, "You can't request yourself.")
+        return redirect('core:browse_workers')
+
+    note = (request.POST.get('message') or '').strip()
+    if not note:
+        note = "Hi, I'd like us to connect as skill partners."
+
+    Message.objects.create(
+        sender=request.user,
+        receiver=worker_profile.user,
+        content=note,
+    )
+    Notification.objects.create(
+        user=worker_profile.user,
+        title="New skill partner request",
+        message=f"{request.user.get_full_name() or request.user.username} sent you a request to connect as skill partners.",
+        notification_type="SYSTEM",
+    )
+    messages.success(request, "Request sent. The student will see it in notifications/messages.")
+    return redirect('core:worker_public_profile', worker_id=worker_profile.id)
 
 
 def browse_jobs(request):
@@ -947,7 +972,8 @@ def browse_workers(request):
         if access_redirect:
             return access_redirect
     form = WorkerSearchForm(request.GET)
-    workers = WorkerProfile.objects.filter(is_available=True, is_approved=True)
+    # Show students who have listed at least one skill
+    workers = WorkerProfile.objects.select_related('user').filter(user__has_listed_skill=True)
     
     if form.is_valid():
         query = form.cleaned_data.get('query')
@@ -959,8 +985,19 @@ def browse_workers(request):
             workers = workers.filter(
                 Q(user__first_name__icontains=query) |
                 Q(user__last_name__icontains=query) |
+                Q(user__username__icontains=query) |
+                Q(user__matriculation_number__icontains=query) |
                 Q(bio__icontains=query)
             )
+            # If query looks like a year (e.g. 2026) also match graduation year
+            try:
+                q_year = int(query)
+                workers = workers | WorkerProfile.objects.select_related('user').filter(
+                    user__has_listed_skill=True,
+                    user__expected_graduation_year=q_year,
+                )
+            except (TypeError, ValueError):
+                pass
         
         if skill:
             workers = workers.filter(skills=skill)

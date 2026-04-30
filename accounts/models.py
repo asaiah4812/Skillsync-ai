@@ -16,6 +16,7 @@ class User(AbstractUser):
     user_type = models.CharField(max_length=10, choices=USER_TYPES, default='CLIENT')
     phone = models.CharField(max_length=20, blank=True, null=True)
     matriculation_number = models.CharField(max_length=30, unique=True, blank=True, null=True)
+    expected_graduation_year = models.PositiveSmallIntegerField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True, help_text="Location coordinates or address")
     address = models.TextField(blank=True)

@@ -7,14 +7,14 @@ from .models import User
 
 
 class UserRegistrationForm(UserCreationForm):
-    """FUK-only student registration form."""
+    """Student registration form."""
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
         'class': 'ss-input w-full',
-        'placeholder': 'Enter your university email'
+        'placeholder': 'Enter your email address'
     }))
     matriculation_number = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={
         'class': 'ss-input w-full',
-        'placeholder': 'e.g. FUK/CSC/20/1234'
+        'placeholder': 'e.g. FUKU/SCI/21B/COM/0120'
     }))
     
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={
@@ -38,20 +38,17 @@ class UserRegistrationForm(UserCreationForm):
         })
 
     def clean_email(self):
-        email = self.cleaned_data['email'].strip().lower()
-        allowed_domains = {'fukashere.edu.ng', 'stu.fukashere.edu.ng'}
-        if '@' not in email:
-            raise ValidationError('Enter a valid university email address.')
-        domain = email.split('@', 1)[1]
-        if domain not in allowed_domains:
-            raise ValidationError('Use your Federal University of Kashere email address.')
-        return email
+        # No university-domain restriction; just normalize.
+        return self.cleaned_data['email'].strip().lower()
 
     def clean_matriculation_number(self):
-        matric = self.cleaned_data['matriculation_number'].strip().upper()
-        # Accept values like FUK/CSC/20/1234 or FUK/ENG/2021/0099
-        if not re.match(r'^FUK/[A-Z]{2,6}/\d{2,4}/\d{2,6}$', matric):
-            raise ValidationError('Enter a valid FUK matriculation number format.')
+        matric = self.cleaned_data['matriculation_number'].strip().upper().replace(' ', '')
+        # Examples:
+        # - FUKU/SCI/21B/COM/0120
+        # - FUKD/SCI/22/ZOO/001
+        # - FUKU/SCI/22/MCB/0085
+        if not re.match(r'^FUK[UD]/[A-Z]{2,10}/\d{2}[A-Z]?/[A-Z]{2,10}/\d{2,6}$', matric):
+            raise ValidationError('Enter a valid matriculation number format.')
         if User.objects.filter(matriculation_number=matric).exists():
             raise ValidationError('This matriculation number is already registered.')
         return matric

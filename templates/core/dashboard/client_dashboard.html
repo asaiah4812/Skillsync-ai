@@ -6,15 +6,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Client Dashboard</h1>
-                    <p class="mt-1 text-sm text-gray-500">Manage your jobs and track your projects</p>
+                    <h1 class="text-3xl font-bold text-gray-900">Student Dashboard</h1>
+                    <p class="mt-1 text-sm text-gray-500">Manage your skill requests and connect with partners</p>
                 </div>
                 <div class="flex space-x-3">
                     <a href="{% url 'core:post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
-                        Post New Job
+                        Post Skill Request
                     </a>
                 </div>
             </div>
@@ -26,7 +26,7 @@
         {% if messages %}
             <div class="mb-6">
                 {% for message in messages %}
-                    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200 {% else %} bg-green-50 text-green-700 border border-green-200 {% endif %}">
+                    <div class="p-4 rounded-lg {% if message.tags == 'error' %} bg-red-50 text-red-700 border border-red-200 {% else %} bg-green-50 text-green-700 border border-green-200 {% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -35,7 +35,7 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Total Jobs -->
+            <!-- Total Skill Requests -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="p-5">
                     <div class="flex items-center">
@@ -48,7 +48,7 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Total Jobs</dt>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Skill Requests</dt>
                                 <dd class="text-lg font-medium text-gray-900">{{ total_jobs }}</dd>
                             </dl>
                         </div>
@@ -56,7 +56,7 @@
                 </div>
             </div>
 
-            <!-- Active Jobs -->
+            <!-- Active Skill Requests -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="p-5">
                     <div class="flex items-center">
@@ -69,7 +69,7 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Active Jobs</dt>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Requests</dt>
                                 <dd class="text-lg font-medium text-gray-900">{{ active_jobs.count }}</dd>
                             </dl>
                         </div>
@@ -77,7 +77,7 @@
                 </div>
             </div>
 
-            <!-- Completed Jobs -->
+            <!-- Completed Requests -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="p-5">
                     <div class="flex items-center">
@@ -153,7 +153,7 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center space-x-2">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if application.status == 'PENDING' %}bg-yellow-100 text-yellow-800 {% elif application.status == 'ACCEPTED' %}bg-green-100 text-green-800 {% else %}bg-red-100 text-red-800 endif %}">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if application.status == 'PENDING' %}bg-yellow-100 text-yellow-800 {% elif application.status == 'ACCEPTED' %}bg-green-100 text-green-800 {% else %}bg-red-100 text-red-800 {% endif %}">
                                                 {{ application.get_status_display }}
                                             </span>
                                             <a href="{% url 'core:job_detail' application.job.id %}" class="text-blue-600 hover:text-blue-500 text-sm">
@@ -169,7 +169,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                                 <h3 class="mt-2 text-sm font-medium text-gray-900">No applications yet</h3>
-                                <p class="mt-1 text-sm text-gray-500">Applications will appear here when workers apply for your jobs.</p>
+                                <p class="mt-1 text-sm text-gray-500">Responses will appear here when students connect with your requests.</p>
                             </div>
                         {% endif %}
                     </div>
@@ -188,13 +188,13 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                            Post New Job
+                            Post Skill Request
                         </a>
                         <a href="{% url 'core:client_jobs' %}?status=OPEN" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
-                            View Open Jobs
+                            View Open Requests
                         </a>
                         <a href="{% url 'core:client_draft_jobs' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,7 +206,10 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
-                            Find Workers
+                            Find Skill Partners
+                        </a>
+                        <a href="{% url 'core:worker_profile' %}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Add My Skills
                         </a>
                         <a href="{% url 'core:client_jobs' %}?status=IN_PROGRESS" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,7 +228,7 @@
                     <div class="p-6">
                         <div class="space-y-4">
                             <div class="flex justify-between">
-                                <span class="text-sm text-gray-500">Jobs Posted</span>
+                                <span class="text-sm text-gray-500">Requests Posted</span>
                                 <span class="text-sm font-medium text-gray-900">{{ monthly_jobs }}</span>
                             </div>
                             <div class="flex justify-between">
@@ -236,10 +239,10 @@
                     </div>
                 </div>
 
-                <!-- Upcoming Jobs -->
+                <!-- Upcoming Requests -->
                 <div class="bg-white shadow rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Upcoming Jobs</h3>
+                        <h3 class="text-lg font-medium text-gray-900">Upcoming Requests</h3>
                     </div>
                     <div class="p-6">
                         {% if upcoming_jobs %}
@@ -257,7 +260,7 @@
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <p class="text-sm text-gray-500">No upcoming jobs scheduled.</p>
+                            <p class="text-sm text-gray-500">No upcoming requests scheduled.</p>
                         {% endif %}
                     </div>
                 </div>

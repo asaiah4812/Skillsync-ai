@@ -6,14 +6,14 @@
         <div class="mb-8">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">My Jobs</h1>
-                    <p class="mt-2 text-gray-600">Manage your posted jobs and track their progress</p>
+                    <h1 class="text-3xl font-bold text-gray-900">My Skill Requests</h1>
+                    <p class="mt-2 text-gray-600">Manage your posted skill requests and track their progress</p>
                 </div>
                 <a href="{% url 'core:post_job' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Post New Job
+                    Post Skill Request
                 </a>
             </div>
         </div>
@@ -157,18 +157,18 @@
                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
                     </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No jobs found</h3>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No skill requests found</h3>
                     <p class="mt-1 text-sm text-gray-500">
                         {% if status_filter %}
-                            No jobs with status "{{ status_filter }}" found.
+                            No requests with status "{{ status_filter }}" found.
                         {% else %}
-                            You haven't posted any jobs yet.
+                            You haven't posted any skill requests yet.
                         {% endif %}
                     </p>
                     <div class="mt-6">
                         <a href="{% url 'core:post_job' %}" 
                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                            Post Your First Job
+                            Post Your First Skill Request
                         </a>
                     </div>
                 </div>
